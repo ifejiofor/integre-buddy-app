@@ -1,0 +1,29 @@
+name = "campus-buddies-backend"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database configuration
+[[d1_databases]]
+binding = "DB"
+database_name = "campus-buddies-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# KV for sessions (optional, for rate limiting)
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# Variables for configuration
+[vars]
+ENVIRONMENT = "production"
+DEBUG = "false"
+
+# For development
+[env.development]
+name = "campus-buddies-backend-dev"
+vars = { ENVIRONMENT = "development", DEBUG = "true" }
+
+# For local development
+[dev]
+local = true
+port = 8787
