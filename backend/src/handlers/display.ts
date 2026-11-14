@@ -2,7 +2,6 @@
  * Public Display Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, ApiResponse, CampaignRow, MatchRow, MatchMemberRow, StudentRow } from '../types';
 import { getCampaignFromDB, getMatchesByCampaign } from '../services/database';
 import { createErrorResponse, createSuccessResponse } from '../utils/security';

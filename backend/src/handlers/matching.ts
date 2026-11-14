@@ -2,7 +2,6 @@
  * Matching Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, MatchingConfiguration, ApiResponse, MatchingRoundRow, MatchRow, MatchMemberRow, StudentRow, CampaignRow } from '../types';
 import { 
   getCampaignFromDB, 

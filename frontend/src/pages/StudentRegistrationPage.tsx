@@ -2,15 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   validateStudentRegistration,
-  validateName,
-  validateArrivalYear,
-  validateHobbies,
-  validateConsent,
   validateCustomHobby
 } from '../utils/validation';
 import { getCampaign, registerStudent, storeStudentResultToken } from '../services/api';
-import { getCurrentYear, getArrivalYears, isNewStudent } from '../utils/date';
-import { deduplicateHobbies, PREDEFINED_HOBBIES } from '../types';
+import { getCurrentYear, getArrivalYears } from '../utils/date';
+import { PREDEFINED_HOBBIES } from '../types';
+import { deduplicateHobbies } from '../utils/matching';
 import { Campaign, StudentRegistrationRequest, PRIVACY_NOTICE_TEXT, PRIVACY_NOTICE_VERSION } from '../types';
 
 export default function StudentRegistrationPage() {

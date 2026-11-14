@@ -2,7 +2,7 @@
  * Backend Types for Campus Buddies
  */
 
-import { D1Database } from '@cloudflare/workers-types/experimental';
+import type { D1Database } from '@cloudflare/workers-types';
 
 // Environment type
 export interface Env {
@@ -15,14 +15,14 @@ export interface Env {
 export interface Campaign {
   id: string;
   city: string;
-  secret_hash: string;
-  registration_url: string;
-  qr_code_url: string;
-  admin_url: string;
-  display_url: string;
+  secretHash: string;
+  registrationUrl: string;
+  qrCodeUrl: string;
+  adminUrl: string;
+  displayUrl: string;
   status: CampaignStatus;
-  created_at: number;
-  expires_at: number;
+  createdAt: number;
+  expiresAt: number;
 }
 
 export type CampaignStatus = 'ACTIVE' | 'EXPIRED' | 'COMPLETED';
@@ -30,16 +30,16 @@ export type CampaignStatus = 'ACTIVE' | 'EXPIRED' | 'COMPLETED';
 // Student Types
 export interface Student {
   id: string;
-  campaign_id: string;
-  first_name: string;
-  last_name: string;
-  arrival_year: number;
-  hobbies: string; // JSON array string
+  campaignId: string;
+  firstName: string;
+  lastName: string;
+  arrivalYear: number;
+  hobbies: string[];
   status: StudentStatus;
-  registered_at: number;
-  consent_given: boolean;
-  consent_timestamp: number;
-  privacy_notice_version: string;
+  registeredAt: number;
+  consentGiven: boolean;
+  consentTimestamp: number;
+  privacyNoticeVersion: string;
 }
 
 export type StudentStatus = 'PENDING' | 'MATCHED' | 'EXPIRED';

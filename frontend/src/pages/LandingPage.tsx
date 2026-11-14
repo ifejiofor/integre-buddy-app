@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateCampaignId } from '../utils/crypto';
 
@@ -61,30 +61,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
     <p className="text-gray-600">{description}</p>
   </div>
 );
-
-// Animated counter component
-interface CounterProps {
-  value: number;
-  label: string;
-}
-
-const Counter = ({ value, label }: CounterProps) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCount(value);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [value]);
-
-  return (
-    <div className="text-center">
-      <div className="text-4xl font-bold gradient-text">{count}</div>
-      <div className="text-sm text-gray-500 uppercase tracking-wide mt-1">{label}</div>
-    </div>
-  );
-};
 
 export default function LandingPage() {
   const navigate = useNavigate();

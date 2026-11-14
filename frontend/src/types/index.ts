@@ -21,6 +21,7 @@ export interface Student {
   firstName: string;
   lastName: string;
   arrivalYear: number;
+  type?: StudentType;
   hobbies: string[];
   status: StudentStatus;
   registeredAt: number;

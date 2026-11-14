@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { 
-  validateCampaignCreation, 
-  validateCity, 
-  validateSecretCode, 
-  validateSecretCodeConfirmation 
-} from '../utils/validation';
-import { generateCampaignId, generateSecretCode } from '../utils/crypto';
+import { useNavigate } from 'react-router-dom';
+import { validateCampaignCreation } from '../utils/validation';
+import { generateSecretCode } from '../utils/crypto';
 import { createCampaign } from '../services/api';
 import { CampaignCreationRequest } from '../types';
 
 export default function CampaignCreationPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const tempId = searchParams.get('tempId') || generateCampaignId();
-  
   const [formData, setFormData] = useState({
     city: '',
     secretCode: '',
@@ -23,14 +15,12 @@ export default function CampaignCreationPage() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
   const [showSecret, setShowSecret] = useState(false);
 
   // Generate a secure secret code on mount
   useEffect(() => {
     const secret = generateSecretCode();
     setFormData(prev => ({ ...prev, secretCode: secret, secretCodeConfirmation: secret }));
-    setGeneratedSecret(secret);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +75,6 @@ export default function CampaignCreationPage() {
   const handleGenerateNewSecret = () => {
     const secret = generateSecretCode();
     setFormData(prev => ({ ...prev, secretCode: secret, secretCodeConfirmation: secret }));
-    setGeneratedSecret(secret);
     setShowSecret(false);
   };
 

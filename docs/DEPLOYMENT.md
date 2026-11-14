@@ -5,7 +5,7 @@ This guide provides step-by-step instructions for deploying the Campus Buddies a
 ## Prerequisites
 
 1. **Cloudflare Account** - You need a Cloudflare account
-2. **Node.js** - Version 18 or higher
+2. **Node.js** - Version 22.12.0 or higher
 3. **npm or yarn** - For package management
 4. **Wrangler CLI** - For Cloudflare Workers deployment
 5. **Git** - For version control
@@ -35,13 +35,13 @@ If you don't have one, sign up at [https://dash.cloudflare.com/sign-up](https://
 ### Install Wrangler CLI
 
 ```bash
-npm install -g wrangler
+npm install -D wrangler@latest
 ```
 
 ### Authenticate Wrangler
 
 ```bash
-wrangler login
+npx wrangler login
 ```
 
 This will open a browser window for authentication.
@@ -51,7 +51,7 @@ This will open a browser window for authentication.
 ### Create a D1 Database
 
 ```bash
-wrangler d1 create campus-buddies-db
+npx wrangler d1 create campus-buddies-db
 ```
 
 This will create a new D1 database. Note the database ID from the output.
@@ -59,7 +59,7 @@ This will create a new D1 database. Note the database ID from the output.
 ### Create a Workers Application
 
 ```bash
-wrangler init campus-buddies-backend
+npx wrangler init campus-buddies-backend
 cd campus-buddies-backend
 ```
 
@@ -90,7 +90,7 @@ Replace `YOUR_D1_DATABASE_ID` with the actual database ID from the D1 creation s
 
 ```bash
 # From the backend directory
-wrangler d1 execute campus-buddies-db --file=../database/schema.sql
+npx wrangler d1 execute campus-buddies-db --file=../database/schema.sql
 ```
 
 This will create all the necessary tables in your D1 database.
@@ -124,7 +124,7 @@ VAPID_PRIVATE_KEY = "YOUR_PRIVATE_KEY"
 
 ```bash
 cd backend
-npm install
+npm ci
 ```
 
 ### Build the Backend
@@ -147,7 +147,7 @@ This will deploy your Workers application to Cloudflare.
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
 ### Configure the Frontend
@@ -349,11 +349,11 @@ For most university events, these limits should be sufficient.
 
 ```bash
 # View backend logs
-wrangler tail
+npx wrangler tail
 
 # View cleanup worker logs
 cd cleanup
-wrangler tail
+npx wrangler tail
 ```
 
 ### View Metrics
@@ -369,14 +369,14 @@ wrangler tail
 
 ```bash
 # Export database data
-wrangler d1 execute campus-buddies-db --command="SELECT * FROM campaigns" > campaigns.json
+npx wrangler d1 execute campus-buddies-db --command="SELECT * FROM campaigns" > campaigns.json
 ```
 
 ### Restore Database
 
 ```bash
 # Import database data
-wrangler d1 execute campus-buddies-db --file=backup.sql
+npx wrangler d1 execute campus-buddies-db --file=backup.sql
 ```
 
 ## Migration to Another Provider

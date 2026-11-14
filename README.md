@@ -62,7 +62,7 @@
 ## Architecture
 
 ### Frontend
-- **Framework**: React 18 with TypeScript
+- **Framework**: React 19 with TypeScript
 - **UI**: Tailwind CSS with custom components
 - **Build Tool**: Vite
 - **PWA**: Service worker for offline support
@@ -85,6 +85,8 @@
 
 ### Development
 
+Use Node.js 22.12.0 or newer.
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/ifejiofor/integre-buddy-night-by-mistral-ai.git
@@ -94,9 +96,9 @@ cd integre-buddy-night-by-mistral-ai
 2. Install dependencies:
 ```bash
 cd frontend
-npm install
+npm ci
 cd ../backend
-npm install
+npm ci
 ```
 
 3. Start the development servers:

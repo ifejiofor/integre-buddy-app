@@ -6,7 +6,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "campus-buddies-db"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "test-database-id" # "f41c1480-1f52-4a4b-895b-49d486cfd00c"
 
 # KV for sessions (optional, for rate limiting)
 # [[kv_namespaces]]
@@ -15,7 +15,7 @@ database_id = "YOUR_D1_DATABASE_ID"
 
 # Variables for configuration
 [vars]
-ENVIRONMENT = "production"
+ENVIRONMENT = "development" # "production"
 DEBUG = "false"
 
 # For development
@@ -25,5 +25,4 @@ vars = { ENVIRONMENT = "development", DEBUG = "true" }
 
 # For local development
 [dev]
-local = true
 port = 8787

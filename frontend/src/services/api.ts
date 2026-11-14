@@ -19,26 +19,19 @@ import {
   Match,
   PublicMatchDisplay,
   ApiResponse,
+  HobbyRelationship,
   API_ENDPOINTS,
   STORAGE_KEYS,
 } from '../types';
 
-// Base API URL - will be configured based on environment
+// API endpoints already include the /api prefix; this is only for an optional host.
 let API_BASE_URL = '';
 
 /**
  * Configure the API base URL
  */
 export function configureApi(baseUrl?: string) {
-  // In development, use the proxy
-  if (import.meta.env.DEV && !baseUrl) {
-    API_BASE_URL = '/api';
-  } else if (import.meta.env.PROD) {
-    // In production, the frontend and backend share the same domain
-    API_BASE_URL = '/api';
-  } else {
-    API_BASE_URL = baseUrl || '/api';
-  }
+  API_BASE_URL = baseUrl || '';
 }
 
 // Initialize API configuration
@@ -70,7 +63,7 @@ async function apiFetch<T>(
       },
     });
   
-    const data = await response.json();
+    const data = await response.json() as ApiResponse<T>;
     
     if (!response.ok) {
       return {
@@ -79,10 +72,7 @@ async function apiFetch<T>(
       };
     }
     
-    return {
-      success: true,
-      data: data as T,
-    };
+    return data;
   } catch (error) {
     console.error('API Error:', error);
     return {

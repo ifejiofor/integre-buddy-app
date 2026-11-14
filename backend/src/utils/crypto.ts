@@ -2,26 +2,42 @@
  * Cryptographic utilities for the backend
  */
 
-import * as bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
-import * as CryptoJS from 'crypto-js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Generate a unique identifier
  */
 export function generateId(): string {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 /**
  * Generate a cryptographically secure random string
  */
 export function generateRandomString(length: number = 32): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return generateStringFromAlphabet(
+    length,
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  );
+}
+
+function generateStringFromAlphabet(length: number, alphabet: string): string {
+  const maxValidByte = 256 - (256 % alphabet.length);
   let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+
+  while (result.length < length) {
+    const bytes = crypto.getRandomValues(
+      new Uint8Array(Math.max(length - result.length, 16))
+    );
+
+    for (const byte of bytes) {
+      if (byte < maxValidByte) {
+        result += alphabet[byte % alphabet.length];
+        if (result.length === length) break;
+      }
+    }
   }
+
   return result;
 }
 
@@ -62,23 +78,10 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 /**
- * Create a deterministic hash for matching purposes
- */
-export function createHash(...inputs: (string | number)[]): string {
-  const inputString = inputs.join('|');
-  return CryptoJS.SHA256(inputString).toString(CryptoJS.enc.Hex);
-}
-
-/**
  * Generate a short, memorable campaign ID
  */
 export function generateCampaignId(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return generateStringFromAlphabet(8, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 }
 
 /**

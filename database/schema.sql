@@ -1,9 +1,6 @@
 -- Campus Buddies Database Schema
 -- Cloudflare D1 (SQLite) Schema
 
--- Enable WAL mode for better performance
-PRAGMA journal_mode = WAL;
-
 -- Create campaigns table
 CREATE TABLE IF NOT EXISTS campaigns (
   id TEXT PRIMARY KEY,

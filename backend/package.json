@@ -2,16 +2,18 @@
   "name": "campus-buddies-backend",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20240117.0",
-    "bcryptjs": "^2.4.3",
-    "uuid": "^9.0.0",
-    "crypto-js": "^4.2.0"
+    "bcryptjs": "^3.0.3",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240117.0",
-    "typescript": "^5.3.0",
-    "wrangler": "^3.24.0"
+    "@cloudflare/workers-types": "^5.20261112.1",
+    "@types/qrcode": "^1.5.6",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.162.0"
   },
   "scripts": {
     "dev": "wrangler dev",

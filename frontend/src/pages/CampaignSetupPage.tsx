@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
-import { jsPDF } from 'jspdf';
 import { getCampaign } from '../services/api';
 import { formatDateTime, formatRemainingTime } from '../utils/date';
 import { Campaign } from '../types';
@@ -60,12 +59,14 @@ export default function CampaignSetupPage() {
     }
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!campaign || !qrCodeUrl) return;
     
     setIsGeneratingPDF(true);
     
     try {
+      const { jsPDF } = await import('jspdf');
+
       // Create a new PDF document
       const pdf = new jsPDF({
         orientation: 'portrait',

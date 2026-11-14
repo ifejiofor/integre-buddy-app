@@ -5,7 +5,7 @@
 import { StudentRow, MatchRow, MatchMemberRow, MatchingRoundRow, MatchingSnapshotRow } from '../types';
 import { HOBBY_RELATIONSHIPS, NICKNAME_THEMES, PREDEFINED_HOBBIES } from '../types';
 import { getCurrentTimestamp } from './date';
-import { generateId, createHash } from './crypto';
+import { generateId } from './crypto';
 
 /**
  * Interface for a student in the matching pool

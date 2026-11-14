@@ -2,7 +2,6 @@
  * Security utilities for the backend
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 
 /**
  * Set security headers on a response

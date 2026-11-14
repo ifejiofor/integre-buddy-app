@@ -8,10 +8,12 @@ import {
   adminLogout,
   getAdminSessionToken,
   clearAdminSessionToken,
-  verifyAdminSession
+  verifyAdminSession,
+  previewMatching,
+  generateMatches
 } from '../services/api';
 import { formatDateTime, formatRemainingTime, getCurrentYear } from '../utils/date';
-import { Campaign, DashboardStats, Student, StudentStatus } from '../types';
+import { Campaign, DashboardStats, MatchingConfiguration, MatchingPreview, Student } from '../types';
 import { getStudentType } from '../utils/matching';
 
 export default function AdminDashboardPage() {
@@ -25,7 +27,16 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'pending' | 'matched'>('overview');
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [isMatchingDialogOpen, setIsMatchingDialogOpen] = useState(false);
+  const [matchingConfig, setMatchingConfig] = useState<MatchingConfiguration>({
+    oldToNewRatio: '1:1',
+    newToNewGroupSize: 2,
+  });
+  const [matchingPreview, setMatchingPreview] = useState<MatchingPreview | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [isGeneratingMatches, setIsGeneratingMatches] = useState(false);
+  const [matchingError, setMatchingError] = useState<string | null>(null);
+  const [matchingSuccess, setMatchingSuccess] = useState<string | null>(null);
 
   // Verify admin session
   useEffect(() => {
@@ -126,13 +137,43 @@ export default function AdminDashboardPage() {
         }
       }, 5000); // Poll every 5 seconds
       
-      setPollingInterval(interval);
       
       return () => {
         if (interval) clearInterval(interval);
       };
     }
   }, [campaignId]);
+
+  useEffect(() => {
+    if (!campaignId || !isMatchingDialogOpen) return;
+
+    let isCurrentRequest = true;
+    setIsPreviewLoading(true);
+    setMatchingError(null);
+    setMatchingPreview(null);
+
+    previewMatching(campaignId, matchingConfig)
+      .then(response => {
+        if (!isCurrentRequest) return;
+        if (!response.success || !response.data) {
+          setMatchingError(response.error || 'Could not preview this matching configuration.');
+          return;
+        }
+        setMatchingPreview(response.data);
+      })
+      .catch(err => {
+        if (!isCurrentRequest) return;
+        console.error('Matching preview error:', err);
+        setMatchingError('Could not preview this matching configuration. Please try again.');
+      })
+      .finally(() => {
+        if (isCurrentRequest) setIsPreviewLoading(false);
+      });
+
+    return () => {
+      isCurrentRequest = false;
+    };
+  }, [campaignId, isMatchingDialogOpen, matchingConfig]);
 
   const handleLogout = async () => {
     if (!campaignId) return;
@@ -148,7 +189,33 @@ export default function AdminDashboardPage() {
   };
 
   const handleGenerateMatches = () => {
-    navigate(`/campaigns/${campaignId}/admin/matching`);
+    setMatchingSuccess(null);
+    setMatchingError(null);
+    setIsMatchingDialogOpen(true);
+  };
+
+  const handleConfirmGenerateMatches = async () => {
+    if (!campaignId) return;
+
+    setIsGeneratingMatches(true);
+    setMatchingError(null);
+    try {
+      const response = await generateMatches(campaignId, matchingConfig);
+      if (!response.success || !response.data) {
+        setMatchingError(response.error || 'Could not generate matches. Please try again.');
+        return;
+      }
+
+      setIsMatchingDialogOpen(false);
+      setMatchingSuccess(
+        `Matching complete: ${response.data.matchesCreated} groups created for ${response.data.studentsMatched} students. ${response.data.studentsPending} students remain pending.`
+      );
+    } catch (err) {
+      console.error('Generate matches error:', err);
+      setMatchingError('Could not generate matches. Please try again.');
+    } finally {
+      setIsGeneratingMatches(false);
+    }
   };
 
   const handleViewPublicDisplay = () => {
@@ -333,6 +400,11 @@ export default function AdminDashboardPage() {
 
         {/* Matching Controls */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          {matchingSuccess && (
+            <div className="alert alert-success mb-4" role="status">
+              {matchingSuccess}
+            </div>
+          )}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-2">Matching Controls</h2>
@@ -559,6 +631,181 @@ export default function AdminDashboardPage() {
           <p>Campaign expires in {formatRemainingTime(campaign.expiresAt)}</p>
         </div>
       </footer>
+
+      {isMatchingDialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget && !isGeneratingMatches) {
+              setIsMatchingDialogOpen(false);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="matching-dialog-title"
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="matching-dialog-title" className="text-2xl font-bold text-gray-900">
+                  Configure matching
+                </h2>
+                <p className="mt-1 text-gray-600">
+                  Choose group sizes, review the estimate, then confirm to start this round.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMatchingDialogOpen(false)}
+                disabled={isGeneratingMatches}
+                className="btn btn-sm btn-ghost"
+                aria-label="Close matching configuration"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="font-semibold text-gray-900">Old-to-new groups</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Each group contains the selected number of old students and new students.
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <label className="flex-1 text-sm text-gray-700">
+                    Old students
+                    <select
+                      className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+                      value={matchingConfig.oldToNewRatio.split(':')[0]}
+                      onChange={event => {
+                        const [, newCount] = matchingConfig.oldToNewRatio.split(':');
+                        setMatchingConfig({
+                          ...matchingConfig,
+                          oldToNewRatio: `${event.target.value}:${newCount}`,
+                        });
+                      }}
+                      disabled={isGeneratingMatches}
+                    >
+                      {[1, 2, 3, 4, 5].map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <span className="mt-6 text-gray-500">+</span>
+                  <label className="flex-1 text-sm text-gray-700">
+                    New students
+                    <select
+                      className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+                      value={matchingConfig.oldToNewRatio.split(':')[1]}
+                      onChange={event => {
+                        const [oldCount] = matchingConfig.oldToNewRatio.split(':');
+                        setMatchingConfig({
+                          ...matchingConfig,
+                          oldToNewRatio: `${oldCount}:${event.target.value}`,
+                        });
+                      }}
+                      disabled={isGeneratingMatches}
+                    >
+                      {[1, 2, 3, 4, 5].map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="new-group-size" className="font-semibold text-gray-900">
+                  New-to-new group size
+                </label>
+                <p className="mt-1 text-sm text-gray-600">
+                  Remaining new students will be grouped in sets of this size.
+                </p>
+                <select
+                  id="new-group-size"
+                  className="mt-3 w-full rounded-lg border border-gray-300 p-2"
+                  value={matchingConfig.newToNewGroupSize}
+                  onChange={event => setMatchingConfig({
+                    ...matchingConfig,
+                    newToNewGroupSize: Number(event.target.value),
+                  })}
+                  disabled={isGeneratingMatches}
+                >
+                  {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(size => (
+                    <option key={size} value={size}>{size} students per group</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-xl bg-gray-50 p-4">
+              <h3 className="font-semibold text-gray-900">Matching preview</h3>
+              {isPreviewLoading ? (
+                <p className="mt-3 text-sm text-gray-600" role="status">Calculating preview…</p>
+              ) : matchingPreview ? (
+                <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                  <div>
+                    <dt className="text-gray-500">Pending old students</dt>
+                    <dd className="font-semibold">{matchingPreview.pendingOldStudents}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Pending new students</dt>
+                    <dd className="font-semibold">{matchingPreview.pendingNewStudents}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Old-to-new ratio</dt>
+                    <dd className="font-semibold">{matchingPreview.selectedOldToNewRatio.replace(':', ' old + ') } new</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">New-to-new group size</dt>
+                    <dd className="font-semibold">{matchingPreview.selectedNewToNewGroupSize}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Estimated groups</dt>
+                    <dd className="font-semibold">{matchingPreview.estimatedMatches}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Expected to remain pending</dt>
+                    <dd className="font-semibold">{matchingPreview.estimatedPending}</dd>
+                  </div>
+                </dl>
+              ) : (
+                <p className="mt-3 text-sm text-gray-600">The preview is not available yet.</p>
+              )}
+            </div>
+
+            {matchingError && (
+              <p className="mt-4 text-sm text-red-700" role="alert">{matchingError}</p>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setIsMatchingDialogOpen(false)}
+                disabled={isGeneratingMatches}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmGenerateMatches}
+                disabled={
+                  isGeneratingMatches ||
+                  isPreviewLoading ||
+                  !matchingPreview ||
+                  matchingPreview.estimatedMatches === 0
+                }
+              >
+                {isGeneratingMatches ? 'Generating…' : 'Confirm and generate matches'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

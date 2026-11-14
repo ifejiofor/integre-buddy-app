@@ -2,7 +2,6 @@
  * Campaign Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, CampaignCreationRequest, Campaign, ApiResponse, CampaignRow, CAMPAIGN_DURATION_HOURS } from '../types';
 import { generateId, hashPassword, generateRegistrationToken, generateResultToken } from '../utils/crypto';
 import { getCurrentTimestamp } from '../utils/date';
@@ -72,7 +71,8 @@ export async function handleCampaignCreation(request: Request, env: Env): Promis
     const displayUrl = `${baseUrl}/campaigns/${campaignId}/display`;
     
     // Generate QR code
-    const qrCodeDataUrl = await QRCode.toDataURL(registrationUrl);
+    const qrCodeSvg = await QRCode.toString(registrationUrl, { type: 'svg' });
+    const qrCodeDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrCodeSvg)}`;
     
     // Create campaign in database
     const campaign: CampaignRow = {

@@ -2,7 +2,6 @@
  * Admin Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, AdminLoginRequest, Campaign, ApiResponse, AdminSessionRow, CampaignRow } from '../types';
 import { getCampaignFromDB, createAdminSessionInDB, getAdminSessionByToken, deleteAdminSession } from '../services/database';
 import { verifyPassword } from '../utils/crypto';

@@ -2,9 +2,8 @@
  * Student Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, StudentRegistrationRequest, Student, ApiResponse, CampaignRow, StudentRow, MatchRow, MatchMemberRow } from '../types';
-import { getCampaignFromDB, createStudentInDB, getStudentFromDB, createResultTokenInDB, getResultTokenByToken, getMatchesByStudent } from '../services/database';
+import { getCampaignFromDB, createStudentInDB, getStudentFromDB, createResultTokenInDB, getResultTokenByToken } from '../services/database';
 import { validateStudentRegistration } from '../utils/validation';
 import { generateId, generateResultToken } from '../utils/crypto';
 import { getCurrentTimestamp, getCurrentYear } from '../utils/date';

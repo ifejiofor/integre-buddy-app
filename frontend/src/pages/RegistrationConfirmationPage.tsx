@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getCampaign, getStudentResults, getStudentResultToken } from '../services/api';
-import { Campaign, Match, Student } from '../types';
+import { Campaign, Match } from '../types';
 import { formatDateTime } from '../utils/date';
 
 // Simple celebration illustration
@@ -48,14 +48,10 @@ const CelebrationIllustration = () => (
 export default function RegistrationConfirmationPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [student, setStudent] = useState<Student | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isCheckingForMatch, setIsCheckingForMatch] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,14 +120,6 @@ export default function RegistrationConfirmationPage() {
     
     // Clear interval on unmount
     return () => clearInterval(interval);
-  };
-
-  const handleViewResults = () => {
-    if (campaignId && match) {
-      // In a real implementation, we'd have the result token
-      // For now, just show the match
-      navigate(`/campaigns/${campaignId}/results/${match.id}`);
-    }
   };
 
   const handleGoToAdmin = () => {

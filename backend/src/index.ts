@@ -6,7 +6,6 @@
  * matching, and notifications.
  */
 
-import { D1Database } from '@cloudflare/workers-types/experimental';
 import { Env } from './types';
 import { handleCampaignCreation } from './handlers/campaigns';
 import { handleAdminLogin, handleAdminLogout, handleVerifyAdmin } from './handlers/admin';

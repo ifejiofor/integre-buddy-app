@@ -2,13 +2,11 @@
  * Cryptographic utilities for the Campus Buddies application
  */
 
-import { v4 as uuidv4 } from 'uuid';
-
 /**
  * Generate a unique identifier
  */
 export function generateId(): string {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 /**

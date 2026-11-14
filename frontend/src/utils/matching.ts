@@ -12,7 +12,6 @@ import {
   StudentStatus, 
   Match, 
   MatchMember,
-  HobbyRelationship,
   PREDEFINED_HOBBIES,
   HOBBY_RELATIONSHIPS,
   NICKNAME_THEMES
@@ -216,7 +215,6 @@ function generateOldNewGroups(
   newRatio: number
 ): MatchGroup[] {
   const groups: MatchGroup[] = [];
-  const totalSize = oldRatio + newRatio;
   
   // We need to create groups with exactly oldRatio old students and newRatio new students
   // This is a combinatorial problem - we need to find all possible combinations
@@ -310,7 +308,7 @@ export function findOptimalMatching(
   
   // Add old-new matches
   for (const group of oldNewMatches) {
-    const match = createMatchFromGroup(group, config);
+    const match = createMatchFromGroup(group);
     matches.push(match);
     group.students.forEach(s => usedStudentIds.add(s.id));
   }
@@ -325,7 +323,7 @@ export function findOptimalMatching(
   
   // Add new-new matches
   for (const group of newNewMatches) {
-    const match = createMatchFromGroup(group, config);
+    const match = createMatchFromGroup(group);
     matches.push(match);
     group.students.forEach(s => usedStudentIds.add(s.id));
   }
@@ -422,15 +420,13 @@ function matchNewWithNew(
 /**
  * Create a Match object from a MatchGroup
  */
-function createMatchFromGroup(group: MatchGroup, config: MatchingConfig): Match {
-  const { oldToNewRatio, newToNewGroupSize } = config;
-  
+function createMatchFromGroup(group: MatchGroup): Match {
   // Generate a unique match ID
   const matchId = `match_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   // Assign nicknames based on group composition
   const members: MatchMember[] = group.students.map((student, index) => {
-    const nickname = assignNickname(student, group.students, index);
+    const nickname = assignNickname(group.students, index);
     return {
       studentId: student.id,
       student: {
@@ -466,7 +462,6 @@ function createMatchFromGroup(group: MatchGroup, config: MatchingConfig): Match 
  * Assign a nickname to a student based on the group
  */
 function assignNickname(
-  student: MatchingStudent,
   group: MatchingStudent[],
   index: number
 ): string {
@@ -571,8 +566,8 @@ export function testMatchingExamples(): void {
   console.log('Example 1 Result:', {
     expected: { oldNewGroups: 5, newNewGroups: 1, pending: 1 },
     actual: {
-      oldNewGroups: result1.matches.filter(m => m.students.some(s => s.type === 'OLD')).length,
-      newNewGroups: result1.matches.filter(m => m.students.every(s => s.type === 'NEW')).length,
+      oldNewGroups: result1.matches.filter(m => m.students.some(s => s.student.type === 'OLD')).length,
+      newNewGroups: result1.matches.filter(m => m.students.every(s => s.student.type === 'NEW')).length,
       pending: result1.pendingStudents.length,
     },
   });
@@ -606,8 +601,8 @@ export function testMatchingExamples(): void {
   console.log('Example 2 Result:', {
     expected: { oldNewGroups: 1, newNewGroups: 2, pending: 1 },
     actual: {
-      oldNewGroups: result2.matches.filter(m => m.students.some(s => s.type === 'OLD')).length,
-      newNewGroups: result2.matches.filter(m => m.students.every(s => s.type === 'NEW')).length,
+      oldNewGroups: result2.matches.filter(m => m.students.some(s => s.student.type === 'OLD')).length,
+      newNewGroups: result2.matches.filter(m => m.students.every(s => s.student.type === 'NEW')).length,
       pending: result2.pendingStudents.length,
     },
   });
@@ -631,8 +626,8 @@ export function testMatchingExamples(): void {
   console.log('Example 3 Result:', {
     expected: { oldNewGroups: 0, newNewGroups: 2, pending: 1 },
     actual: {
-      oldNewGroups: result3.matches.filter(m => m.students.some(s => s.type === 'OLD')).length,
-      newNewGroups: result3.matches.filter(m => m.students.every(s => s.type === 'NEW')).length,
+      oldNewGroups: result3.matches.filter(m => m.students.some(s => s.student.type === 'OLD')).length,
+      newNewGroups: result3.matches.filter(m => m.students.every(s => s.student.type === 'NEW')).length,
       pending: result3.pendingStudents.length,
     },
   });

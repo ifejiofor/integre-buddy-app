@@ -54,7 +54,7 @@ export default function PublicDisplayPage() {
   const [scrollSpeed, setScrollSpeed] = useState(20); // seconds for full scroll
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   // Fetch campaign and matches
   useEffect(() => {

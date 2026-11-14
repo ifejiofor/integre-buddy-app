@@ -2,7 +2,6 @@
  * Notification Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, ApiResponse, PushSubscriptionRow } from '../types';
 import { 
   createPushSubscriptionInDB, 

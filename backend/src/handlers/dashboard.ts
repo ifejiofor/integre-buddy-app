@@ -2,11 +2,9 @@
  * Dashboard Handlers
  */
 
-import { Request, Response } from '@cloudflare/workers-types';
 import { Env, Campaign, ApiResponse, DashboardStats, Student } from '../types';
 import { getCampaignFromDB, getCampaignStats, getPendingStudentsByCampaign, getMatchedStudentsByCampaign } from '../services/database';
 import { createErrorResponse, createSuccessResponse, extractTokenFromHeader } from '../utils/security';
-import { verifyAdminSession } from './admin';
 
 /**
  * Get dashboard statistics

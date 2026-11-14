@@ -2,8 +2,6 @@
  * Validation utilities for the backend
  */
 
-import { VALIDATION } from '../types';
-
 // Define validation constants
 const MIN_NAME_LENGTH = 1;
 const MAX_NAME_LENGTH = 50;
