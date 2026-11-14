@@ -18,6 +18,7 @@ import {
   CampaignStatus,
   StudentStatus,
   MatchingRoundStatus,
+  MatchedStudentGroup,
 } from '../types';
 import { getCurrentTimestamp } from '../utils/date';
 
@@ -183,6 +184,107 @@ export async function getMatchedStudentsByCampaign(db: D1Database, campaignId: s
   
   const result = await db.prepare(query).bind(campaignId).all<StudentRow>();
   return result.results || [];
+}
+
+/**
+ * Get completed match groups with their members and assigned nicknames.
+ */
+export async function getMatchedStudentGroupsByCampaign(
+  db: D1Database,
+  campaignId: string
+): Promise<MatchedStudentGroup[]> {
+  interface MatchedGroupRow {
+    match_id: string;
+    matching_round_id: string;
+    matching_round_number: number;
+    compatibility_score: number;
+    nickname_theme: string;
+    matched_at: number;
+    student_id: string;
+    first_name: string;
+    last_name: string;
+    arrival_year: number;
+    hobbies: string;
+    status: StudentStatus;
+    registered_at: number;
+    consent_given: number;
+    consent_timestamp: number;
+    privacy_notice_version: string;
+    nickname: string;
+    role: string;
+  }
+
+  const result = await db.prepare(`
+    SELECT
+      m.id AS match_id,
+      m.matching_round_id,
+      (
+        SELECT COUNT(*)
+        FROM matching_rounds earlier
+        WHERE earlier.campaign_id = mr.campaign_id
+          AND earlier.status = 'COMPLETED'
+          AND (
+            earlier.configured_at < mr.configured_at
+            OR (earlier.configured_at = mr.configured_at AND earlier.id <= mr.id)
+          )
+      ) AS matching_round_number,
+      m.compatibility_score,
+      m.nickname_theme,
+      m.created_at AS matched_at,
+      s.id AS student_id,
+      s.first_name,
+      s.last_name,
+      s.arrival_year,
+      s.hobbies,
+      s.status,
+      s.registered_at,
+      s.consent_given,
+      s.consent_timestamp,
+      s.privacy_notice_version,
+      mm.nickname,
+      mm.role
+    FROM matches m
+    JOIN matching_rounds mr ON mr.id = m.matching_round_id AND mr.status = 'COMPLETED'
+    JOIN match_members mm ON mm.match_id = m.id
+    JOIN students s ON s.id = mm.student_id
+    WHERE m.campaign_id = ?
+    ORDER BY mr.configured_at DESC, m.created_at DESC, s.last_name, s.first_name
+  `).bind(campaignId).all<MatchedGroupRow>();
+
+  const groups = new Map<string, MatchedStudentGroup>();
+  for (const row of result.results || []) {
+    let group = groups.get(row.match_id);
+    if (!group) {
+      group = {
+        id: row.match_id,
+        matchingRoundId: row.matching_round_id,
+        matchingRoundNumber: row.matching_round_number,
+        compatibilityScore: row.compatibility_score,
+        nicknameTheme: row.nickname_theme,
+        matchedAt: row.matched_at,
+        students: [],
+      };
+      groups.set(row.match_id, group);
+    }
+
+    group.students.push({
+      id: row.student_id,
+      campaignId,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      arrivalYear: row.arrival_year,
+      hobbies: JSON.parse(row.hobbies) as string[],
+      status: row.status,
+      registeredAt: row.registered_at,
+      consentGiven: row.consent_given === 1,
+      consentTimestamp: row.consent_timestamp,
+      privacyNoticeVersion: row.privacy_notice_version,
+      nickname: row.nickname,
+      role: row.role,
+    });
+  }
+
+  return [...groups.values()];
 }
 
 /**

@@ -80,6 +80,21 @@ export interface MatchMember {
   role: string; // e.g., "romeo", "juliet", "sherlock", "watson"
 }
 
+export interface MatchedStudentRecord extends Student {
+  nickname: string;
+  role: string;
+}
+
+export interface MatchedStudentGroup {
+  id: string;
+  matchingRoundId: string;
+  matchingRoundNumber: number;
+  compatibilityScore: number;
+  nicknameTheme: string;
+  matchedAt: number;
+  students: MatchedStudentRecord[];
+}
+
 // Nickname Types
 export interface NicknameTheme {
   id: string;

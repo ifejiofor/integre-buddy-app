@@ -17,6 +17,7 @@ import {
   DashboardStats,
   Student,
   Match,
+  MatchedStudentGroup,
   PublicMatchDisplay,
   ApiResponse,
   HobbyRelationship,
@@ -339,14 +340,14 @@ export async function getMatchedStudents(
   campaignId: string,
   page: number = 1,
   limit: number = 20
-): Promise<ApiResponse<{ students: Student[]; total: number }>> {
+): Promise<ApiResponse<{ matches: MatchedStudentGroup[]; total: number }>> {
   const token = getAdminSessionToken(campaignId);
   
   if (!token) {
     return { success: false, error: 'Not authenticated' };
   }
   
-  return apiFetch<{ students: Student[]; total: number }>(
+  return apiFetch<{ matches: MatchedStudentGroup[]; total: number }>(
     API_ENDPOINTS.GET_MATCHED_STUDENTS.replace(':campaignId', campaignId),
     {
       headers: {

@@ -13,7 +13,7 @@ import {
   generateMatches
 } from '../services/api';
 import { formatDateTime, formatRemainingTime, getCurrentYear } from '../utils/date';
-import { Campaign, DashboardStats, MatchingConfiguration, MatchingPreview, Student } from '../types';
+import { Campaign, DashboardStats, MatchedStudentGroup, MatchingConfiguration, MatchingPreview, Student } from '../types';
 import { getStudentType } from '../utils/matching';
 
 export default function AdminDashboardPage() {
@@ -23,7 +23,8 @@ export default function AdminDashboardPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pendingStudents, setPendingStudents] = useState<Student[]>([]);
-  const [matchedStudents, setMatchedStudents] = useState<Student[]>([]);
+  const [matchedGroups, setMatchedGroups] = useState<MatchedStudentGroup[]>([]);
+  const matchedStudents = matchedGroups.flatMap(group => group.students);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'pending' | 'matched'>('overview');
@@ -96,7 +97,7 @@ export default function AdminDashboardPage() {
         // Fetch matched students
         const matchedResponse = await getMatchedStudents(campaignId);
         if (matchedResponse.success && matchedResponse.data) {
-          setMatchedStudents(matchedResponse.data.students);
+          setMatchedGroups(matchedResponse.data.matches);
         }
         
       } catch (err) {
@@ -130,7 +131,7 @@ export default function AdminDashboardPage() {
           // Fetch matched students
           const matchedResponse = await getMatchedStudents(campaignId);
           if (matchedResponse.success && matchedResponse.data) {
-            setMatchedStudents(matchedResponse.data.students);
+            setMatchedGroups(matchedResponse.data.matches);
           }
         } catch (err) {
           console.error('Polling error:', err);
@@ -579,44 +580,53 @@ export default function AdminDashboardPage() {
                     <p className="text-sm text-gray-400 mt-2">Generate matches to see results</p>
                   </div>
                 ) : (
-                  <div className="table-container">
-                    <table className="table">
-                      <thead className="table-header">
-                        <tr>
-                          <th className="table-header-cell">Name</th>
-                          <th className="table-header-cell">Year</th>
-                          <th className="table-header-cell">Type</th>
-                          <th className="table-header-cell">Hobbies</th>
-                          <th className="table-header-cell">Status</th>
-                          <th className="table-header-cell">Registered</th>
-                        </tr>
-                      </thead>
-                      <tbody className="table-body">
-                        {matchedStudents.map(student => (
-                          <tr key={student.id} className="table-row">
-                            <td className="table-cell">
-                              <div className="font-medium">{student.firstName} {student.lastName}</div>
-                            </td>
-                            <td className="table-cell">{student.arrivalYear}</td>
-                            <td className="table-cell">{getStudentTypeBadge(student)}</td>
-                            <td className="table-cell">
-                              <div className="flex flex-wrap gap-1">
-                                {student.hobbies.slice(0, 3).map(hobby => (
+                  <div className="space-y-5">
+                    {matchedGroups.map(group => (
+                      <section key={group.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h4 className="text-lg font-bold text-gray-900">
+                              {group.students.map(student => student.nickname).join(' & ')}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {group.nicknameTheme} · Round {group.matchingRoundNumber}
+                            </p>
+                          </div>
+                          <div className="text-left sm:text-right">
+                            <p className="font-semibold text-primary-700">
+                              {group.compatibilityScore}% compatibility
+                            </p>
+                            <p className="text-sm text-gray-500">{formatDateTime(group.matchedAt)}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {group.students.map(student => (
+                            <article key={student.id} className="rounded-lg bg-gray-50 p-4">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold text-gray-900">
+                                  {student.firstName} {student.lastName}
+                                </span>
+                                <span className="badge badge-success">{student.nickname}</span>
+                                {getStudentTypeBadge(student)}
+                              </div>
+                              <p className="mt-1 text-sm text-gray-600">Arrival year: {student.arrivalYear}</p>
+                              <div className="mt-3 flex flex-wrap gap-1">
+                                {student.hobbies.map(hobby => (
                                   <span key={hobby} className="hobby-chip">{hobby}</span>
                                 ))}
-                                {student.hobbies.length > 3 && (
-                                  <span className="hobby-chip">+{student.hobbies.length - 3} more</span>
+                                {student.hobbies.length === 0 && (
+                                  <span className="text-sm text-gray-500">No hobbies listed</span>
                                 )}
                               </div>
-                            </td>
-                            <td className="table-cell">
-                              <span className="badge badge-success">Matched</span>
-                            </td>
-                            <td className="table-cell">{formatDateTime(student.registeredAt)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                              <p className="mt-3 text-xs text-gray-500">
+                                Matched on {formatDateTime(group.matchedAt)}
+                              </p>
+                            </article>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
                   </div>
                 )}
               </div>

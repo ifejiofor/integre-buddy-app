@@ -3,7 +3,7 @@
  */
 
 import { Env, Campaign, ApiResponse, DashboardStats, Student } from '../types';
-import { getCampaignFromDB, getCampaignStats, getPendingStudentsByCampaign, getMatchedStudentsByCampaign } from '../services/database';
+import { getCampaignFromDB, getCampaignStats, getPendingStudentsByCampaign, getMatchedStudentGroupsByCampaign } from '../services/database';
 import { createErrorResponse, createSuccessResponse, extractTokenFromHeader } from '../utils/security';
 
 /**
@@ -133,26 +133,11 @@ export async function handleGetMatchedStudents(request: Request, env: Env, campa
     }
     
     // Get matched students
-    const students = await getMatchedStudentsByCampaign(env.DB, campaignId);
-    
-    // Convert to response format
-    const responseStudents: Student[] = students.map(s => ({
-      id: s.id,
-      campaignId: s.campaign_id,
-      firstName: s.first_name,
-      lastName: s.last_name,
-      arrivalYear: s.arrival_year,
-      hobbies: JSON.parse(s.hobbies),
-      status: s.status,
-      registeredAt: s.registered_at,
-      consentGiven: s.consent_given === 1,
-      consentTimestamp: s.consent_timestamp,
-      privacyNoticeVersion: s.privacy_notice_version,
-    }));
+    const matches = await getMatchedStudentGroupsByCampaign(env.DB, campaignId);
     
     return createSuccessResponse({
-      students: responseStudents,
-      total: responseStudents.length,
+      matches,
+      total: matches.reduce((total, match) => total + match.students.length, 0),
     });
   } catch (error) {
     console.error('Get matched students error:', error);

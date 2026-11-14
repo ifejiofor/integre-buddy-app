@@ -220,6 +220,21 @@ export interface MatchMemberRow {
   role: string;
 }
 
+export interface MatchedStudentRecord extends Student {
+  nickname: string;
+  role: string;
+}
+
+export interface MatchedStudentGroup {
+  id: string;
+  matchingRoundId: string;
+  matchingRoundNumber: number;
+  compatibilityScore: number;
+  nicknameTheme: string;
+  matchedAt: number;
+  students: MatchedStudentRecord[];
+}
+
 export interface PushSubscriptionRow {
   id: string;
   campaign_id: string;
