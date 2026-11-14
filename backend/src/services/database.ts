@@ -81,44 +81,17 @@ export async function updateCampaignStatus(
  * Delete a campaign and all related data
  */
 export async function deleteCampaignAndRelatedData(db: D1Database, campaignId: string): Promise<void> {
-  // Start a transaction
-  await db.exec(`BEGIN TRANSACTION`);
-  
-  try {
-    // Delete matching snapshots
-    await db.prepare(`DELETE FROM matching_snapshots WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete match members
-    await db.prepare(`DELETE FROM match_members WHERE match_id IN (SELECT id FROM matches WHERE campaign_id = ?)`).bind(campaignId).run();
-    
-    // Delete matches
-    await db.prepare(`DELETE FROM matches WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete matching rounds
-    await db.prepare(`DELETE FROM matching_rounds WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete push subscriptions
-    await db.prepare(`DELETE FROM push_subscriptions WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete result tokens
-    await db.prepare(`DELETE FROM result_tokens WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete admin sessions
-    await db.prepare(`DELETE FROM admin_sessions WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete students
-    await db.prepare(`DELETE FROM students WHERE campaign_id = ?`).bind(campaignId).run();
-    
-    // Delete the campaign
-    await db.prepare(`DELETE FROM campaigns WHERE id = ?`).bind(campaignId).run();
-    
-    // Commit transaction
-    await db.exec(`COMMIT`);
-  } catch (error) {
-    // Rollback on error
-    await db.exec(`ROLLBACK`);
-    throw error;
-  }
+  await db.batch([
+    db.prepare(`DELETE FROM matching_snapshots WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM match_members WHERE match_id IN (SELECT id FROM matches WHERE campaign_id = ?)`).bind(campaignId),
+    db.prepare(`DELETE FROM matches WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM matching_rounds WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM push_subscriptions WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM result_tokens WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM admin_sessions WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM students WHERE campaign_id = ?`).bind(campaignId),
+    db.prepare(`DELETE FROM campaigns WHERE id = ?`).bind(campaignId),
+  ]);
 }
 
 /**

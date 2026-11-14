@@ -2,27 +2,47 @@
  * Matching Handlers
  */
 
-import { Env, MatchingConfiguration, ApiResponse, MatchingRoundRow, MatchRow, MatchMemberRow, StudentRow, CampaignRow } from '../types';
-import { 
-  getCampaignFromDB, 
-  getPendingStudentsByCampaign,
-  createMatchingRoundInDB,
-  updateMatchingRoundStatus,
-  createMatchInDB,
-  createMatchMemberInDB,
-  updateStudentsStatus,
-  getCampaignStats
-} from '../services/database';
+import { Env, MatchingConfiguration, MatchingRoundRow, MatchingSnapshotRow, StudentRow } from '../types';
+import { getCampaignFromDB, getPendingStudentsByCampaign } from '../services/database';
 import { createErrorResponse, createSuccessResponse, extractTokenFromHeader } from '../utils/security';
 import { generateId } from '../utils/crypto';
 import { getCurrentTimestamp } from '../utils/date';
 import { 
   toMatchingStudent, 
   findOptimalMatching,
-  createMatchingSnapshot,
-  getSnapshotStudents,
   MatchingConfig
 } from '../utils/matching';
+import { validateGroupSize, validateRatio } from '../utils/validation';
+
+async function readMatchingConfiguration(request: Request): Promise<MatchingConfiguration | null> {
+  let body: unknown;
+  try {
+    body = await request.json<unknown>();
+  } catch {
+    return null;
+  }
+
+  if (
+    typeof body !== 'object' ||
+    body === null ||
+    !('oldToNewRatio' in body) ||
+    !('newToNewGroupSize' in body) ||
+    typeof body.oldToNewRatio !== 'string' ||
+    typeof body.newToNewGroupSize !== 'number' ||
+    !Number.isInteger(body.newToNewGroupSize)
+  ) {
+    return null;
+  }
+
+  if (!validateRatio(body.oldToNewRatio).valid || !validateGroupSize(body.newToNewGroupSize).valid) {
+    return null;
+  }
+
+  return {
+    oldToNewRatio: body.oldToNewRatio,
+    newToNewGroupSize: body.newToNewGroupSize,
+  };
+}
 
 /**
  * Configure matching (preview)
@@ -47,10 +67,8 @@ export async function handleConfigureMatching(request: Request, env: Env, campai
     }
     
     // Parse request body
-    const body = await request.json<MatchingConfiguration>();
-    
-    // Validate configuration
-    if (!body.oldToNewRatio || !body.newToNewGroupSize) {
+    const config = await readMatchingConfiguration(request);
+    if (!config) {
       return createErrorResponse('Invalid matching configuration', 400);
     }
     
@@ -87,7 +105,10 @@ export async function handlePreviewMatching(request: Request, env: Env, campaign
     }
     
     // Parse request body
-    const body = await request.json<MatchingConfiguration>();
+    const config = await readMatchingConfiguration(request);
+    if (!config) {
+      return createErrorResponse('Invalid matching configuration', 400);
+    }
     
     // Get pending students
     const pendingStudents = await getPendingStudentsByCampaign(env.DB, campaignId);
@@ -95,32 +116,21 @@ export async function handlePreviewMatching(request: Request, env: Env, campaign
     // Convert to matching students
     const matchingStudents = pendingStudents.map(toMatchingStudent);
     
-    // Calculate preview
+    // Use the same matcher as generation so the estimate reflects its actual grouping.
     const oldStudents = matchingStudents.filter(s => s.type === 'OLD');
     const newStudents = matchingStudents.filter(s => s.type === 'NEW');
-    
-    const { old: oldRatio, new: newRatio } = { old: 1, new: 1 }; // Default ratio
-    const parsedRatio = body.oldToNewRatio ? body.oldToNewRatio.split(':') : ['1', '1'];
-    
-    const maxOldGroups = Math.floor(oldStudents.length / parseInt(parsedRatio[0], 10));
-    const maxNewGroups = Math.floor(newStudents.length / parseInt(parsedRatio[1], 10));
-    const maxGroups = Math.min(maxOldGroups, maxNewGroups);
-    
-    const studentsMatchedInOldNew = maxGroups * (parseInt(parsedRatio[0], 10) + parseInt(parsedRatio[1], 10));
-    const remainingNew = newStudents.length - maxGroups * parseInt(parsedRatio[1], 10);
-    const newNewGroups = Math.floor(remainingNew / body.newToNewGroupSize);
-    const studentsMatchedInNewNew = newNewGroups * body.newToNewGroupSize;
-    
-    const totalMatched = studentsMatchedInOldNew + studentsMatchedInNewNew;
-    const totalPending = matchingStudents.length - totalMatched;
+    const result = findOptimalMatching(matchingStudents, {
+      oldToNewRatio: config.oldToNewRatio,
+      newToNewGroupSize: config.newToNewGroupSize,
+    });
     
     return createSuccessResponse({
       pendingOldStudents: oldStudents.length,
       pendingNewStudents: newStudents.length,
-      selectedOldToNewRatio: body.oldToNewRatio,
-      selectedNewToNewGroupSize: body.newToNewGroupSize,
-      estimatedMatches: maxGroups + newNewGroups,
-      estimatedPending: totalPending,
+      selectedOldToNewRatio: config.oldToNewRatio,
+      selectedNewToNewGroupSize: config.newToNewGroupSize,
+      estimatedMatches: result.stats.matchesCreated,
+      estimatedPending: result.stats.totalPending,
     });
   } catch (error) {
     console.error('Preview matching error:', error);
@@ -151,106 +161,149 @@ export async function handleGenerateMatches(request: Request, env: Env, campaign
     }
     
     // Parse request body
-    const body = await request.json<MatchingConfiguration>();
-    
-    // Validate configuration
-    if (!body.oldToNewRatio || !body.newToNewGroupSize) {
+    const body = await readMatchingConfiguration(request);
+    if (!body) {
       return createErrorResponse('Invalid matching configuration', 400);
     }
     
-    // Get pending students
     const pendingStudents = await getPendingStudentsByCampaign(env.DB, campaignId);
-    
     if (pendingStudents.length < 2) {
       return createErrorResponse('At least 2 pending students are required to generate matches', 400);
     }
-    
-    // Start a transaction
-    await env.DB.exec('BEGIN TRANSACTION');
-    
+
+    const pendingIds = pendingStudents.map(student => student.id);
+    const placeholders = pendingIds.map(() => '?').join(', ');
+    const reservationResult = await env.DB.prepare(`
+      UPDATE students
+      SET status = 'MATCHING'
+      WHERE campaign_id = ? AND status = 'PENDING' AND id IN (${placeholders})
+      RETURNING *
+    `).bind(campaignId, ...pendingIds).all<StudentRow>();
+    const reservedIdsSet = new Set((reservationResult.results || []).map(student => student.id));
+    const reservedStudents = pendingStudents.filter(student => reservedIdsSet.has(student.id));
+    const reservedIds = reservedStudents.map(student => student.id);
+
+    if (reservedStudents.length < 2) {
+      if (reservedIds.length > 0) {
+        await env.DB.prepare(`
+          UPDATE students SET status = 'PENDING'
+          WHERE campaign_id = ? AND status = 'MATCHING' AND id IN (${reservedIds.map(() => '?').join(', ')})
+        `).bind(campaignId, ...reservedIds).run();
+      }
+      return createErrorResponse('Pending students changed while matching started. Please refresh and try again.', 409);
+    }
+
     try {
-      // Create matching round
       const now = getCurrentTimestamp();
       const roundId = generateId();
-      
-      const round: MatchingRoundRow = {
-        id: roundId,
+      const snapshot: MatchingSnapshotRow = {
+        id: generateId(),
         campaign_id: campaignId,
-        configured_at: now,
-        completed_at: null,
-        old_to_new_ratio: body.oldToNewRatio,
-        new_to_new_group_size: body.newToNewGroupSize,
-        total_matches: 0,
-        total_students_matched: 0,
-        total_students_pending: 0,
-        status: 'PROCESSING',
+        matching_round_id: roundId,
+        student_ids: JSON.stringify(reservedIds),
+        created_at: now,
       };
-      
-      await createMatchingRoundInDB(env.DB, round);
-      
-      // Create snapshot of current pending students
-      const studentIds = pendingStudents.map(s => s.id);
-      const snapshot = await createMatchingSnapshot(env.DB, campaignId, roundId, studentIds);
-      
-      // Get snapshot students (to ensure we're working with the same data)
-      const snapshotStudents = await getSnapshotStudents(env.DB, snapshot);
-      const matchingStudents = snapshotStudents.map(toMatchingStudent);
-      
-      // Run matching algorithm
+      const matchingStudents = reservedStudents.map(toMatchingStudent);
       const config: MatchingConfig = {
         oldToNewRatio: body.oldToNewRatio,
         newToNewGroupSize: body.newToNewGroupSize,
       };
-      
       const result = findOptimalMatching(matchingStudents, config);
-      
-      // Save matches
-      for (const match of result.matches) {
-        // Set campaign and round IDs
-        match.campaign_id = campaignId;
-        match.matching_round_id = roundId;
-        
-        await createMatchInDB(env.DB, match);
-        
-        // Save match members
-        const matchMembers = result.matchMembers.filter(m => m.match_id === match.id);
-        for (const member of matchMembers) {
-          await createMatchMemberInDB(env.DB, member);
+      const round: MatchingRoundRow = {
+        id: roundId,
+        campaign_id: campaignId,
+        configured_at: now,
+        completed_at: now,
+        old_to_new_ratio: body.oldToNewRatio,
+        new_to_new_group_size: body.newToNewGroupSize,
+        total_matches: result.stats.matchesCreated,
+        total_students_matched: result.stats.totalMatched,
+        total_students_pending: result.stats.totalPending,
+        status: 'COMPLETED',
+      };
+
+      const statements = [
+        env.DB.prepare(`
+          INSERT INTO matching_rounds
+            (id, campaign_id, configured_at, completed_at, old_to_new_ratio, new_to_new_group_size, total_matches, total_students_matched, total_students_pending, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          round.id,
+          round.campaign_id,
+          round.configured_at,
+          round.completed_at,
+          round.old_to_new_ratio,
+          round.new_to_new_group_size,
+          round.total_matches,
+          round.total_students_matched,
+          round.total_students_pending,
+          round.status
+        ),
+        env.DB.prepare(`
+          INSERT INTO matching_snapshots (id, campaign_id, matching_round_id, student_ids, created_at)
+          VALUES (?, ?, ?, ?, ?)
+        `).bind(
+          snapshot.id,
+          snapshot.campaign_id,
+          snapshot.matching_round_id,
+          snapshot.student_ids,
+          snapshot.created_at
+        ),
+      ];
+
+      for (let offset = 0; offset < result.matches.length; offset += 100) {
+        const matchChunk = result.matches.slice(offset, offset + 100);
+        for (const match of matchChunk) {
+          match.campaign_id = campaignId;
+          match.matching_round_id = roundId;
+        }
+
+        const values = matchChunk.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+        statements.push(env.DB.prepare(`
+          INSERT INTO matches (id, campaign_id, matching_round_id, compatibility_score, nickname_theme, created_at)
+          VALUES ${values}
+        `).bind(...matchChunk.flatMap(match => [
+          match.id,
+          match.campaign_id,
+          match.matching_round_id,
+          match.compatibility_score,
+          match.nickname_theme,
+          match.created_at,
+        ])));
+      }
+
+      for (let offset = 0; offset < result.matchMembers.length; offset += 100) {
+        const memberChunk = result.matchMembers.slice(offset, offset + 100);
+        const values = memberChunk.map(() => '(?, ?, ?, ?, ?)').join(', ');
+        statements.push(env.DB.prepare(`
+          INSERT INTO match_members (id, match_id, student_id, nickname, role)
+          VALUES ${values}
+        `).bind(...memberChunk.flatMap(member => [
+          member.id,
+          member.match_id,
+          member.student_id,
+          member.nickname,
+          member.role,
+        ])));
+      }
+
+      const matchedStudentIds = reservedIds.filter(id => !result.pendingStudentIds.includes(id));
+      const unmatchedStudentIds = reservedIds.filter(id => result.pendingStudentIds.includes(id));
+      for (const [ids, status] of [
+        [matchedStudentIds, 'MATCHED'],
+        [unmatchedStudentIds, 'PENDING'],
+      ] as const) {
+        for (let offset = 0; offset < ids.length; offset += 400) {
+          const idChunk = ids.slice(offset, offset + 400);
+          statements.push(env.DB.prepare(`
+            UPDATE students SET status = ?
+            WHERE campaign_id = ? AND status = 'MATCHING' AND id IN (${idChunk.map(() => '?').join(', ')})
+          `).bind(status, campaignId, ...idChunk));
         }
       }
-      
-      // Update student statuses
-      const matchedStudentIds = matchingStudents
-        .filter(s => !result.pendingStudentIds.includes(s.id))
-        .map(s => s.id);
-      
-      if (matchedStudentIds.length > 0) {
-        await updateStudentsStatus(env.DB, matchedStudentIds, 'MATCHED');
-      }
-      
-      // Update round statistics
-      await updateMatchingRoundStatus(
-        env.DB,
-        roundId,
-        'COMPLETED',
-        now
-      );
-      
-      // Update round with actual stats
-      await env.DB.prepare(`
-        UPDATE matching_rounds 
-        SET total_matches = ?, total_students_matched = ?, total_students_pending = ?
-        WHERE id = ?
-      `).bind(
-        result.stats.matchesCreated,
-        result.stats.totalMatched,
-        result.stats.totalPending,
-        roundId
-      ).run();
-      
-      // Commit transaction
-      await env.DB.exec('COMMIT');
-      
+
+      await env.DB.batch(statements);
+
       // Return success
       return createSuccessResponse({
         matchingRoundId: roundId,
@@ -259,8 +312,10 @@ export async function handleGenerateMatches(request: Request, env: Env, campaign
         studentsPending: result.stats.totalPending,
       });
     } catch (error) {
-      // Rollback on error
-      await env.DB.exec('ROLLBACK');
+      await env.DB.prepare(`
+        UPDATE students SET status = 'PENDING'
+        WHERE campaign_id = ? AND status = 'MATCHING' AND id IN (${reservedIds.map(() => '?').join(', ')})
+      `).bind(campaignId, ...reservedIds).run();
       console.error('Generate matches error:', error);
       return createErrorResponse('Failed to generate matches', 500);
     }

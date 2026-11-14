@@ -42,7 +42,7 @@ export interface Student {
   privacyNoticeVersion: string;
 }
 
-export type StudentStatus = 'PENDING' | 'MATCHED' | 'EXPIRED';
+export type StudentStatus = 'PENDING' | 'MATCHING' | 'MATCHED' | 'EXPIRED';
 
 // Matching Types
 export interface MatchingRound {
