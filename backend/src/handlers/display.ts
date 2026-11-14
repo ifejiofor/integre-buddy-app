@@ -44,6 +44,7 @@ export async function handleGetPublicDisplay(request: Request, env: Env, campaig
     
     // Build public display data
     const publicMatches: PublicMatchDisplay[] = [];
+    const displayedCombinations = new Set<string>();
     
     for (const match of matches) {
       // Get match members
@@ -55,6 +56,15 @@ export async function handleGetPublicDisplay(request: Request, env: Env, campaig
       if (!members.results || members.results.length === 0) {
         continue;
       }
+
+      const combinationKey = members.results
+        .map(member => member.student_id)
+        .sort()
+        .join(':');
+      if (displayedCombinations.has(combinationKey)) {
+        continue;
+      }
+      displayedCombinations.add(combinationKey);
       
       // Get student details for each member
       const studentIds = members.results.map(m => m.student_id);

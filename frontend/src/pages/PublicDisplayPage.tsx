@@ -133,14 +133,14 @@ export default function PublicDisplayPage() {
         startScroll = container.scrollTop;
       }
       
-      const elapsed = timestamp - startTime;
-      const progress = (elapsed % (scrollSpeed * 1000)) / (scrollSpeed * 1000);
-      
-      // Smooth scrolling with ease-in-out
-      const easedProgress = progress < 0.5 
-        ? 2 * progress * progress 
+        const elapsed = timestamp - startTime;
+        const legDuration = scrollSpeed * 1000;
+        const cycleProgress = (elapsed % (legDuration * 2)) / legDuration;
+        const progress = cycleProgress <= 1 ? cycleProgress : 2 - cycleProgress;
+        const easedProgress = progress < 0.5
+          ? 2 * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-      
+
       container.scrollTop = startScroll! + easedProgress * maxScroll;
       
       animationRef.current = requestAnimationFrame(animate);
@@ -262,9 +262,8 @@ export default function PublicDisplayPage() {
             className="scrolling-container scrollbar-hide"
           >
             <div className="py-8 space-y-6">
-              {/* Duplicate matches for seamless scrolling */}
-              {[...matches, ...matches].map((match, index) => (
-                <div key={`${match.matchId}-${index}`} className="public-display-match">
+              {matches.map((match, index) => (
+                <div key={match.matchId} className="public-display-match">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4">
                       <h2 className="text-2xl font-bold text-white">Match #{index + 1}</h2>
