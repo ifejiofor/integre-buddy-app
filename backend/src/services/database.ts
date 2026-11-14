@@ -540,6 +540,33 @@ export async function createPushSubscriptionInDB(db: D1Database, subscription: P
   return db.prepare(query).bind(...params).run();
 }
 
+export async function getPushSubscriptionByEndpoint(
+  db: D1Database,
+  campaignId: string,
+  endpoint: string
+): Promise<PushSubscriptionRow | null> {
+  return db.prepare(`
+    SELECT * FROM push_subscriptions WHERE campaign_id = ? AND endpoint = ? LIMIT 1
+  `).bind(campaignId, endpoint).first<PushSubscriptionRow>();
+}
+
+export async function updatePushSubscriptionInDB(
+  db: D1Database,
+  subscription: PushSubscriptionRow
+): Promise<D1Result> {
+  return db.prepare(`
+    UPDATE push_subscriptions
+    SET student_id = ?, p256dh = ?, auth = ?, created_at = ?
+    WHERE id = ?
+  `).bind(
+    subscription.student_id,
+    subscription.p256dh,
+    subscription.auth,
+    subscription.created_at,
+    subscription.id
+  ).run();
+}
+
 /**
  * Get push subscription by ID
  */
@@ -573,6 +600,17 @@ export async function getPushSubscriptionsByStudent(db: D1Database, studentId: s
   `;
   
   const result = await db.prepare(query).bind(studentId).all<PushSubscriptionRow>();
+  return result.results || [];
+}
+
+export async function getPushSubscriptionsByStudentAndCampaign(
+  db: D1Database,
+  campaignId: string,
+  studentId: string
+): Promise<PushSubscriptionRow[]> {
+  const result = await db.prepare(`
+    SELECT * FROM push_subscriptions WHERE campaign_id = ? AND student_id = ?
+  `).bind(campaignId, studentId).all<PushSubscriptionRow>();
   return result.results || [];
 }
 

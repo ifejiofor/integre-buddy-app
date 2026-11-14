@@ -2,23 +2,25 @@
  * Notification Handlers
  */
 
-import { Env, ApiResponse, PushSubscriptionRow } from '../types';
-import { 
-  createPushSubscriptionInDB, 
-  getPushSubscriptionFromDB,
+import { Env, PushSubscriptionRow } from '../types';
+import {
+  createPushSubscriptionInDB,
   deletePushSubscription,
-  getPushSubscriptionsByCampaign
+  getCampaignFromDB,
+  getPushSubscriptionByEndpoint,
+  getPushSubscriptionsByStudentAndCampaign,
+  updatePushSubscriptionInDB,
 } from '../services/database';
 import { generateId } from '../utils/crypto';
 import { getCurrentTimestamp } from '../utils/date';
 import { createErrorResponse, createSuccessResponse } from '../utils/security';
+import { isValidPushEndpoint, sendWebPush } from '../utils/webPush';
 
 /**
  * Subscribe to push notifications
  */
 export async function handleSubscribePush(request: Request, env: Env, campaignId: string): Promise<Response> {
   try {
-    // Parse request body
     const body = await request.json<{
       subscription: {
         endpoint: string;
@@ -29,27 +31,33 @@ export async function handleSubscribePush(request: Request, env: Env, campaignId
       };
       studentId?: string;
     }>();
-    
-    if (!body.subscription) {
-      return createErrorResponse('Subscription data is required', 400);
+
+    if (
+      typeof body.subscription?.endpoint !== 'string' ||
+      typeof body.subscription.keys?.p256dh !== 'string' ||
+      typeof body.subscription.keys?.auth !== 'string' ||
+      !isValidPushEndpoint(body.subscription.endpoint)
+    ) {
+      return createErrorResponse('Valid subscription data is required', 400);
     }
-    
-    // Create subscription
-    const subscriptionId = generateId();
-    const now = getCurrentTimestamp();
-    
+
     const subscription: PushSubscriptionRow = {
-      id: subscriptionId,
+      id: generateId(),
       campaign_id: campaignId,
       student_id: body.studentId || null,
       endpoint: body.subscription.endpoint,
       p256dh: body.subscription.keys.p256dh,
       auth: body.subscription.keys.auth,
-      created_at: now,
+      created_at: getCurrentTimestamp(),
     };
-    
-    await createPushSubscriptionInDB(env.DB, subscription);
-    
+    const existing = await getPushSubscriptionByEndpoint(env.DB, campaignId, subscription.endpoint);
+    if (existing) {
+      subscription.id = existing.id;
+      await updatePushSubscriptionInDB(env.DB, subscription);
+    } else {
+      await createPushSubscriptionInDB(env.DB, subscription);
+    }
+
     return createSuccessResponse(null);
   } catch (error) {
     console.error('Subscribe push error:', error);
@@ -62,16 +70,19 @@ export async function handleSubscribePush(request: Request, env: Env, campaignId
  */
 export async function handleUnsubscribePush(request: Request, env: Env, campaignId: string): Promise<Response> {
   try {
-    // Parse request body
     const body = await request.json<{ subscriptionId: string }>();
-    
+
     if (!body.subscriptionId) {
       return createErrorResponse('Subscription ID is required', 400);
     }
-    
-    // Delete subscription
-    await deletePushSubscription(env.DB, body.subscriptionId);
-    
+
+    const subscription = await env.DB.prepare(`
+      SELECT id FROM push_subscriptions WHERE id = ? AND campaign_id = ?
+    `).bind(body.subscriptionId, campaignId).first<{ id: string }>();
+    if (subscription) {
+      await deletePushSubscription(env.DB, subscription.id);
+    }
+
     return createSuccessResponse(null);
   } catch (error) {
     console.error('Unsubscribe push error:', error);
@@ -80,38 +91,54 @@ export async function handleUnsubscribePush(request: Request, env: Env, campaign
 }
 
 /**
- * Send push notification (internal function, not exposed via API)
- * This would be called by the matching handler after matches are created
+ * Send a result notification after a successful match transaction.
  */
 export async function sendPushNotification(
   env: Env,
   campaignId: string,
+  studentId: string,
   title: string,
   body: string,
-  data: { url: string }
+  url: string
 ): Promise<void> {
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !env.VAPID_SUBJECT) {
+    console.error('Push notification delivery skipped: VAPID configuration is incomplete');
+    return;
+  }
+
   try {
-    // Get all push subscriptions for this campaign
-    const subscriptions = await getPushSubscriptionsByCampaign(env.DB, campaignId);
-    
-    if (subscriptions.length === 0) {
-      console.log('No push subscriptions for campaign:', campaignId);
+    const campaign = await getCampaignFromDB(env.DB, campaignId);
+    if (!campaign || campaign.status !== 'ACTIVE' || campaign.expires_at <= getCurrentTimestamp()) {
+      console.log('Push notification delivery skipped for inactive campaign');
       return;
     }
-    
-    // In a real implementation, we would send push notifications here
-    // For Cloudflare Workers, we would use the Web Push API
-    // However, this requires VAPID keys and proper configuration
-    
-    console.log(`Would send push notification to ${subscriptions.length} subscribers for campaign ${campaignId}`);
-    console.log(`Title: ${title}, Body: ${body}, URL: ${data.url}`);
-    
-    // Note: In a production environment, you would:
-    // 1. Create a Web Push message
-    // 2. Sign it with your VAPID private key
-    // 3. Send it to each subscription endpoint
-    
-    // For now, we'll just log it
+
+    const subscriptions = await getPushSubscriptionsByStudentAndCampaign(env.DB, campaignId, studentId);
+    const deliveredEndpoints = new Set<string>();
+    for (const subscription of subscriptions) {
+      if (deliveredEndpoints.has(subscription.endpoint)) continue;
+      deliveredEndpoints.add(subscription.endpoint);
+
+      try {
+        const response = await sendWebPush(
+          subscription.endpoint,
+          subscription.p256dh,
+          subscription.auth,
+          { title, body, url },
+          env.VAPID_PUBLIC_KEY,
+          env.VAPID_PRIVATE_KEY,
+          env.VAPID_SUBJECT
+        );
+
+        if (response.status === 404 || response.status === 410) {
+          await deletePushSubscription(env.DB, subscription.id);
+        } else if (!response.ok) {
+          console.error(`Push delivery failed with HTTP ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Push delivery failed:', error);
+      }
+    }
   } catch (error) {
     console.error('Failed to send push notification:', error);
   }

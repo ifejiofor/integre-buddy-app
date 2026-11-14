@@ -3,7 +3,11 @@
  */
 
 import { Env, MatchingConfiguration, MatchingRoundRow, MatchingSnapshotRow, StudentRow } from '../types';
-import { getCampaignFromDB, getPendingStudentsByCampaign } from '../services/database';
+import {
+  getCampaignFromDB,
+  getPendingStudentsByCampaign,
+  getResultTokenByStudent,
+} from '../services/database';
 import { createErrorResponse, createSuccessResponse, extractTokenFromHeader } from '../utils/security';
 import { generateId } from '../utils/crypto';
 import { getCurrentTimestamp } from '../utils/date';
@@ -13,6 +17,7 @@ import {
   MatchingConfig
 } from '../utils/matching';
 import { validateGroupSize, validateRatio } from '../utils/validation';
+import { sendPushNotification } from './notifications';
 
 async function readMatchingConfiguration(request: Request): Promise<MatchingConfiguration | null> {
   let body: unknown;
@@ -303,6 +308,30 @@ export async function handleGenerateMatches(request: Request, env: Env, campaign
       }
 
       await env.DB.batch(statements);
+
+      for (const studentId of matchedStudentIds) {
+        try {
+          const resultToken = await getResultTokenByStudent(env.DB, studentId);
+          if (!resultToken) {
+            console.error('Cannot notify matched student: result token is missing');
+            continue;
+          }
+          const resultUrl = new URL(
+            `/campaigns/${campaignId}/results/${encodeURIComponent(resultToken.token)}`,
+            campaign.registration_url
+          ).toString();
+          await sendPushNotification(
+            env,
+            campaignId,
+            studentId,
+            'Your Campus Buddy is ready!',
+            "Tap here to discover who you've been matched with.",
+            resultUrl
+          );
+        } catch (error) {
+          console.error('Could not prepare matched-student notification:', error);
+        }
+      }
 
       // Return success
       return createSuccessResponse({

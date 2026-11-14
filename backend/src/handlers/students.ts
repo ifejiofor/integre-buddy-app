@@ -2,13 +2,23 @@
  * Student Handlers
  */
 
-import { Env, StudentRegistrationRequest, Student, ApiResponse, CampaignRow, StudentRow, MatchRow, MatchMemberRow } from '../types';
-import { getCampaignFromDB, createStudentInDB, getStudentFromDB, createResultTokenInDB, getResultTokenByToken } from '../services/database';
+import { Env, StudentRegistrationRequest, Student, ApiResponse, CampaignRow, StudentRow, MatchRow, MatchMemberRow, PushSubscriptionRow } from '../types';
+import {
+  getCampaignFromDB,
+  createStudentInDB,
+  getStudentFromDB,
+  createResultTokenInDB,
+  getResultTokenByToken,
+  getPushSubscriptionByEndpoint,
+  createPushSubscriptionInDB,
+  updatePushSubscriptionInDB,
+} from '../services/database';
 import { validateStudentRegistration } from '../utils/validation';
 import { generateId, generateResultToken } from '../utils/crypto';
 import { getCurrentTimestamp, getCurrentYear } from '../utils/date';
 import { createErrorResponse, createSuccessResponse } from '../utils/security';
 import { deduplicateHobbies, getStudentType } from '../utils/matching';
+import { isValidPushEndpoint } from '../utils/webPush';
 
 /**
  * Student registration
@@ -76,6 +86,39 @@ export async function handleStudentRegistration(request: Request, env: Env, camp
       token: resultToken,
       created_at: now,
     });
+
+    const pushSubscription = body.pushSubscription;
+    if (
+      pushSubscription?.endpoint &&
+      pushSubscription.keys?.p256dh &&
+      pushSubscription.keys.auth
+    ) {
+      try {
+        if (!isValidPushEndpoint(pushSubscription.endpoint)) {
+          throw new Error('Unsupported push subscription endpoint');
+        }
+        const endpoint = new URL(pushSubscription.endpoint);
+
+        const subscription: PushSubscriptionRow = {
+          id: generateId(),
+          campaign_id: campaignId,
+          student_id: studentId,
+          endpoint: endpoint.toString(),
+          p256dh: pushSubscription.keys.p256dh,
+          auth: pushSubscription.keys.auth,
+          created_at: now,
+        };
+        const existing = await getPushSubscriptionByEndpoint(env.DB, campaignId, subscription.endpoint);
+        if (existing) {
+          subscription.id = existing.id;
+          await updatePushSubscriptionInDB(env.DB, subscription);
+        } else {
+          await createPushSubscriptionInDB(env.DB, subscription);
+        }
+      } catch (error) {
+        console.error('Could not save optional push subscription:', error);
+      }
+    }
     
     // Convert to response format
     const responseStudent: Student = {

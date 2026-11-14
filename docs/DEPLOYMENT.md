@@ -97,25 +97,46 @@ This will create all the necessary tables in your D1 database.
 
 ## Step 5: Configure Push Notifications (Optional)
 
-For push notifications to work, you need to generate VAPID keys:
+Push notifications use Web Push with VAPID. Generate a key pair once and keep
+the same pair for the lifetime of the subscriptions:
 
 ```bash
 # Generate VAPID keys
 npx web-push generate-vapid-keys
 ```
 
-This will output a public and private key. Store these securely.
+This outputs a public and private key. Never commit the private key.
 
-### Configure VAPID Keys in Wrangler
+### Configure VAPID Keys
 
-Add the VAPID keys to your `wrangler.toml`:
+For local development, add the following to `backend/.dev.vars` (do not commit
+this file):
 
-```toml
-[vars]
-ENVIRONMENT = "production"
-DEBUG = "false"
-VAPID_PUBLIC_KEY = "YOUR_PUBLIC_KEY"
-VAPID_PRIVATE_KEY = "YOUR_PRIVATE_KEY"
+```dotenv
+VAPID_PUBLIC_KEY=YOUR_PUBLIC_KEY
+VAPID_PRIVATE_KEY=YOUR_PRIVATE_KEY
+VAPID_SUBJECT=mailto:admin@your-domain.example
+```
+
+For production, configure the Worker secrets:
+
+```bash
+cd backend
+npx wrangler secret put VAPID_PUBLIC_KEY
+npx wrangler secret put VAPID_PRIVATE_KEY
+npx wrangler secret put VAPID_SUBJECT
+```
+
+The public key must also be available to the frontend at build time. For local
+development, put it in `frontend/.env.local`:
+
+```dotenv
+VITE_PUSH_PUBLIC_KEY=YOUR_PUBLIC_KEY
+```
+
+For Cloudflare Pages, set `VITE_PUSH_PUBLIC_KEY` as an environment variable and
+redeploy the frontend. The public key must match the Worker's `VAPID_PUBLIC_KEY`.
+Students can still register if push is unavailable, denied, or misconfigured.
 ```
 
 ## Step 6: Deploy the Backend
@@ -298,15 +319,16 @@ The application uses the following environment variables:
 |----------|-------------|----------|
 | `ENVIRONMENT` | Deployment environment (production, development) | Yes |
 | `DEBUG` | Enable debug logging | No |
-| `VAPID_PUBLIC_KEY` | VAPID public key for push notifications | No |
-| `VAPID_PRIVATE_KEY` | VAPID private key for push notifications | No |
+| `VAPID_PUBLIC_KEY` | VAPID public key for Web Push (Worker secret) | Required to deliver push |
+| `VAPID_PRIVATE_KEY` | VAPID private key for Web Push (Worker secret; never expose to frontend) | Required to deliver push |
+| `VAPID_SUBJECT` | Contact URI, such as `mailto:admin@example.com` | Required to deliver push |
 
 ### Frontend (Pages)
 
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `VITE_API_URL` | Backend API URL | Yes |
-| `VITE_PUSH_PUBLIC_KEY` | VAPID public key for push notifications | No |
+| `VITE_PUSH_PUBLIC_KEY` | Matching VAPID public key used to create browser subscriptions | Required to enable push |
 
 ## Troubleshooting
 
@@ -329,9 +351,10 @@ The application uses the following environment variables:
 
 ### Push Notification Issues
 
-1. Verify that VAPID keys are configured correctly
-2. Ensure the service worker is registered and working
-3. Check browser console for errors
+1. Verify the Worker has both VAPID secrets and the frontend was built with the matching `VITE_PUSH_PUBLIC_KEY`.
+2. Ensure the site is served over HTTPS (localhost is allowed for development) and `/sw.js` registers successfully.
+3. Check that the student clicked **Enable Notifications** before registration and that the browser permission is granted.
+4. Review Worker logs for delivery errors; expired push endpoints are removed automatically.
 
 ## Free Tier Limits
 

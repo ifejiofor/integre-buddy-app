@@ -33,6 +33,7 @@ export default function StudentRegistrationPage() {
   const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission | null>(null);
   const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null);
+  const [pushSetupError, setPushSetupError] = useState<string | null>(null);
 
   // Fetch campaign details
   useEffect(() => {
@@ -68,6 +69,17 @@ export default function StudentRegistrationPage() {
   useEffect(() => {
     if ('Notification' in window) {
       setPushPermission(Notification.permission);
+      if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+          .then(registration => registration.pushManager.getSubscription())
+          .then(subscription => setPushSubscription(subscription))
+          .catch(err => {
+            console.error('Could not restore push subscription:', err);
+            setPushSetupError('Browser notifications could not be initialized. You can still register without them.');
+          });
+      }
+    } else {
+      setPushSetupError('This browser does not support push notifications. You can still register and check your result later.');
     }
   }, []);
 
@@ -137,23 +149,41 @@ export default function StudentRegistrationPage() {
 
   const requestPushPermission = async () => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setPushSetupError('This browser does not support push notifications. You can still register without them.');
+      return;
+    }
+
+    const publicKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
+    if (!publicKey) {
+      setPushSetupError('Browser notifications are not configured for this application. You can still register without them.');
       return;
     }
     
     try {
-      const permission = await Notification.requestPermission();
+      const permission = Notification.permission === 'granted'
+        ? 'granted'
+        : await Notification.requestPermission();
       setPushPermission(permission);
       
       if (permission === 'granted') {
         const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.subscribe({
+        const existingSubscription = await registration.pushManager.getSubscription();
+        const applicationServerKey = Uint8Array.from(
+          atob(publicKey.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(publicKey.length / 4) * 4, '=')),
+          character => character.charCodeAt(0)
+        );
+        const subscription = existingSubscription || await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: import.meta.env.VITE_PUSH_PUBLIC_KEY,
+          applicationServerKey,
         });
         setPushSubscription(subscription);
+        setPushSetupError(null);
+      } else if (permission === 'denied') {
+        setPushSetupError('Notifications are blocked in browser settings. You can still register and check your result later.');
       }
     } catch (err) {
       console.error('Failed to request push permission:', err);
+      setPushSetupError('Could not enable browser notifications. You can still register without them.');
     }
   };
 
@@ -197,12 +227,12 @@ export default function StudentRegistrationPage() {
         hobbies,
         consentGiven: formData.consentGiven,
         privacyNoticeVersion: PRIVACY_NOTICE_VERSION,
-        pushSubscription: pushPermission === 'granted' ? {
-          endpoint: pushSubscription?.endpoint || '',
-          keys: pushSubscription ? {
+        pushSubscription: pushPermission === 'granted' && pushSubscription ? {
+          endpoint: pushSubscription.endpoint,
+          keys: {
             p256dh: btoa(String.fromCharCode(...new Uint8Array(pushSubscription.getKey('p256dh') as ArrayBuffer))),
             auth: btoa(String.fromCharCode(...new Uint8Array(pushSubscription.getKey('auth') as ArrayBuffer))),
-          } : { p256dh: '', auth: '' },
+          },
         } : undefined,
       };
       
@@ -442,21 +472,24 @@ export default function StudentRegistrationPage() {
                   <p className="text-sm text-primary-800">
                     <strong>Optional:</strong> Enable browser notifications to be alerted when your buddy is assigned.
                   </p>
-                  {pushPermission === 'default' && (
+                  {(pushPermission === 'default' || (pushPermission === 'granted' && !pushSubscription)) && (
                     <button
                       type="button"
                       onClick={requestPushPermission}
                       className="btn btn-sm btn-primary mt-2"
                       disabled={isSubmitting}
                     >
-                      Enable Notifications
+                      {pushPermission === 'granted' ? 'Finish Notification Setup' : 'Enable Notifications'}
                     </button>
                   )}
-                  {pushPermission === 'granted' && (
+                  {pushPermission === 'granted' && pushSubscription && (
                     <p className="text-sm text-green-600 mt-1">Notifications enabled ✓</p>
                   )}
                   {pushPermission === 'denied' && (
                     <p className="text-sm text-gray-500 mt-1">Notifications blocked</p>
+                  )}
+                  {pushSetupError && (
+                    <p className="mt-2 text-sm text-gray-600" role="status">{pushSetupError}</p>
                   )}
                 </div>
               </div>
