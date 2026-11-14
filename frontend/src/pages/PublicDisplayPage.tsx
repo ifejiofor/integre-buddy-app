@@ -134,9 +134,7 @@ export default function PublicDisplayPage() {
       }
       
         const elapsed = timestamp - startTime;
-        const legDuration = scrollSpeed * 1000;
-        const cycleProgress = (elapsed % (legDuration * 2)) / legDuration;
-        const progress = cycleProgress <= 1 ? cycleProgress : 2 - cycleProgress;
+        const progress = (elapsed % (scrollSpeed * 1000)) / (scrollSpeed * 1000);
         const easedProgress = progress < 0.5
           ? 2 * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 2) / 2;
