@@ -101,12 +101,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     return handleStudentRegistration(request, env, campaignId);
   }
   
-  if (path.match(/^\/api\/campaigns\/([^\/]+)\/students\/([^\/]+)$/) && request.method === 'GET') {
-    const campaignId = path.split('/')[3];
-    const studentId = path.split('/')[5];
-    return handleGetStudent(request, env, campaignId, studentId);
-  }
-  
   if (path.match(/^\/api\/campaigns\/([^\/]+)\/students\/([^\/]+)\/results$/) && request.method === 'GET') {
     const campaignId = path.split('/')[3];
     const studentId = path.split('/')[5];
@@ -127,6 +121,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   if (path.match(/^\/api\/campaigns\/([^\/]+)\/students\/matched$/) && request.method === 'GET') {
     const campaignId = path.split('/')[3];
     return handleGetMatchedStudents(request, env, campaignId);
+  }
+
+  if (path.match(/^\/api\/campaigns\/([^\/]+)\/students\/([^\/]+)$/) && request.method === 'GET') {
+    const campaignId = path.split('/')[3];
+    const studentId = path.split('/')[5];
+    return handleGetStudent(request, env, campaignId, studentId);
   }
   
   // Matching
