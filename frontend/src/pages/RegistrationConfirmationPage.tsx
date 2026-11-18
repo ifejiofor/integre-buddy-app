@@ -122,10 +122,6 @@ export default function RegistrationConfirmationPage() {
     return () => clearInterval(interval);
   };
 
-  const handleGoToAdmin = () => {
-    navigate(`/campaigns/${campaignId}/admin/login`);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-purple-800 flex items-center justify-center">
