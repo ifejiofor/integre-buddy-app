@@ -138,9 +138,25 @@ export default function StudentResultPage() {
     );
   }
 
-  // Find the current student from the match
-  const currentStudent = match.students[0].student; // Assuming first student is the current user
-  const otherStudents = match.students.slice(1);
+  // The API resolves the result token to its owner, so member order cannot
+  // cause another student to be labelled as the viewer.
+  const currentMember = match.students.find(member => member.studentId === match.currentStudentId);
+  const currentStudent = currentMember?.student;
+  const otherStudents = match.students.filter(member => member.studentId !== match.currentStudentId);
+
+  if (!currentMember || !currentStudent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-purple-800 flex items-center justify-center p-4">
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold mb-4">Match Not Found</h2>
+          <p className="mb-6">Your match details could not be loaded.</p>
+          <button onClick={() => navigate(`/campaigns/${campaignId}/register`)} className="btn btn-white text-primary-600">
+            Register Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-purple-800 py-12 px-4">
@@ -180,7 +196,7 @@ export default function StudentResultPage() {
                 {currentStudent.firstName.charAt(0)}{currentStudent.lastName.charAt(0)}
               </div>
               <div>
-                <p className="font-bold text-primary-800">{match.students[0].nickname}</p>
+                <p className="font-bold text-primary-800">{currentMember.nickname}</p>
                 <p className="text-primary-600">{currentStudent.firstName} {currentStudent.lastName}</p>
                 <p className="text-sm text-primary-500">You</p>
               </div>

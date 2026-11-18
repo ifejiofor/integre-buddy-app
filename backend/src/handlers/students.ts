@@ -253,6 +253,9 @@ export async function handleGetStudentResults(request: Request, env: Env, campai
       id: match.id,
       campaignId: match.campaign_id,
       matchingRoundId: match.matching_round_id,
+      // Identify the viewer from the result token, not from the database
+      // member order (which is shared by everyone in this match).
+      currentStudentId: studentId,
       students: allMembers.results.map(member => {
         const student = students.results.find(s => s.id === member.student_id);
         return {

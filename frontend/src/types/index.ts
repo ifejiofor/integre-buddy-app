@@ -67,6 +67,8 @@ export interface Match {
   id: string;
   campaignId: string;
   matchingRoundId: string;
+  // Present when a match is returned through a student's result-token endpoint.
+  currentStudentId?: string;
   students: MatchMember[];
   compatibilityScore: number;
   createdAt: number;
