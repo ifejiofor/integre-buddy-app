@@ -29,6 +29,13 @@ export default {
     
     // Log the request
     await logRequest(request, startTime);
+
+    // `application/json` POST requests from the frontend trigger a CORS
+    // preflight. It must receive a successful response before the browser
+    // will issue the actual API request.
+    if (request.method === 'OPTIONS') {
+      return setSecurityHeaders(new Response(null, { status: 204 }));
+    }
     
     try {
       // Set security headers
@@ -36,7 +43,7 @@ export default {
       return setSecurityHeaders(response);
     } catch (error) {
       console.error('Unhandled error:', error);
-      return new Response(
+      return setSecurityHeaders(new Response(
         JSON.stringify({
           success: false,
           error: 'Internal server error',
@@ -45,7 +52,7 @@ export default {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
         }
-      );
+      ));
     }
   },
 };
@@ -103,8 +110,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   
   if (path.match(/^\/api\/campaigns\/([^\/]+)\/students\/([^\/]+)\/results$/) && request.method === 'GET') {
     const campaignId = path.split('/')[3];
-    const studentId = path.split('/')[5];
-    return handleGetStudentResults(request, env, campaignId, studentId);
+    return handleGetStudentResults(request, env, campaignId);
+  }
+
+  if (path.match(/^\/api\/campaigns\/([^\/]+)\/results$/) && request.method === 'GET') {
+    const campaignId = path.split('/')[3];
+    return handleGetStudentResults(request, env, campaignId);
   }
   
   // Dashboard

@@ -440,13 +440,11 @@ export async function generateMatches(
  */
 export async function getStudentResults(
   campaignId: string,
-  studentId: string,
   token: string
 ): Promise<ApiResponse<Match | null>> {
   return apiFetch<Match | null>(
     API_ENDPOINTS.GET_STUDENT_RESULTS
-      .replace(':campaignId', campaignId)
-      .replace(':studentId', studentId),
+      .replace(':campaignId', campaignId),
     {
       headers: {
         Authorization: `Bearer ${token}`,

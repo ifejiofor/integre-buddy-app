@@ -90,7 +90,7 @@ export default function StudentResultPage() {
         }
         
         // Fetch match results
-        const resultResponse = await getStudentResults(campaignId, token, token);
+        const resultResponse = await getStudentResults(campaignId, token);
         if (resultResponse.success && resultResponse.data) {
           setMatch(resultResponse.data);
         } else {

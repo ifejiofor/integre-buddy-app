@@ -246,14 +246,23 @@ export async function handleCheckCampaign(request: Request, env: Env, campaignId
 }
 
 /**
- * Get base URL from request
+ * Get the public frontend base URL from the request.
+ *
+ * Browser fetch requests include `Origin`, which identifies the frontend that
+ * initiated campaign creation. This can differ from the Worker host in
+ * production, so prefer it when creating URLs that users will open. Keep the
+ * request URL as a fallback for non-browser clients.
  */
 function getBaseUrl(request: Request): string {
-  const url = new URL(request.url);
-  // In production, use the actual host
-  // In development, use localhost
-  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-    return `http://${url.hostname}:3000`;
+  const origin = request.headers.get('Origin');
+
+  if (origin) {
+    try {
+      return new URL(origin).origin;
+    } catch {
+      // Fall back to the request URL below if the header is malformed.
+    }
   }
-  return `https://${url.hostname}`;
+
+  return new URL(request.url).origin;
 }

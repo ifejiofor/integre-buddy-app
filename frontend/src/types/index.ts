@@ -493,7 +493,7 @@ export const API_ENDPOINTS = {
   PREVIEW_MATCHING: '/api/campaigns/:campaignId/matching/preview',
   GENERATE_MATCHES: '/api/campaigns/:campaignId/matching/generate',
   GET_MATCH_RESULTS: '/api/campaigns/:campaignId/matches/:matchId',
-  GET_STUDENT_RESULTS: '/api/campaigns/:campaignId/students/:studentId/results',
+  GET_STUDENT_RESULTS: '/api/campaigns/:campaignId/results',
   GET_PUBLIC_DISPLAY: '/api/campaigns/:campaignId/display',
   SUBSCRIBE_PUSH: '/api/campaigns/:campaignId/notifications/subscribe',
   UNSUBSCRIBE_PUSH: '/api/campaigns/:campaignId/notifications/unsubscribe',

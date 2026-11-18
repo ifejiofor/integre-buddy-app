@@ -186,11 +186,19 @@ export async function handleGetStudent(request: Request, env: Env, campaignId: s
 /**
  * Get student results (match information)
  */
-export async function handleGetStudentResults(request: Request, env: Env, campaignId: string, studentId: string): Promise<Response> {
+export async function handleGetStudentResults(request: Request, env: Env, campaignId: string): Promise<Response> {
   try {
-    // Get the result token from the URL or header
+    // The result token is a bearer credential. It used to be read from the
+    // final path segment, which is always "results" for this endpoint.
+    // That made every valid result request look as if it had no match.
     const url = new URL(request.url);
-    const token = url.pathname.split('/').pop() || '';
+    const authorization = request.headers.get('Authorization');
+    const token = url.searchParams.get('token')
+      || (authorization?.startsWith('Bearer ') ? authorization.slice('Bearer '.length) : '');
+
+    if (!token) {
+      return createErrorResponse('Result token is required', 401);
+    }
     
     // Get the result token from database
     const resultToken = await getResultTokenByToken(env.DB, token);
@@ -198,10 +206,13 @@ export async function handleGetStudentResults(request: Request, env: Env, campai
       return createSuccessResponse(null); // No match yet
     }
     
-    // Check if token belongs to the campaign and student
-    if (resultToken.campaign_id !== campaignId || resultToken.student_id !== studentId) {
+    // The token identifies the student; never rely on a client-controlled
+    // student ID in the route for authorization.
+    if (resultToken.campaign_id !== campaignId) {
       return createErrorResponse('Invalid token', 403);
     }
+
+    const studentId = resultToken.student_id;
     
     // Get matches for this student
     const matchMembers = await env.DB
