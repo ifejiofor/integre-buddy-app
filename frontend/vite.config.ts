@@ -2,8 +2,16 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
-  plugins: [
+export default defineConfig(({ mode }) => {
+  const apiBaseUrl = mode === 'production'
+    ? 'https://integre-buddy-app-backend.integre.workers.dev'
+    : 'http://localhost:8787'
+
+  return {
+    define: {
+      __API_BASE_URL__: JSON.stringify(apiBaseUrl),
+    },
+    plugins: [
     react(),
     VitePWA({
       strategies: 'injectManifest',
@@ -35,18 +43,19 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
     }),
-  ],
-  server: {
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'https://integre-buddy-app-backend.integre.workers.dev:8787',
-        changeOrigin: true,
+    ],
+    server: {
+      port: 3000,
+      proxy: {
+        '/api': {
+          target: apiBaseUrl,
+          changeOrigin: true,
+        },
       },
     },
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-  },
+    build: {
+      outDir: 'dist',
+      sourcemap: true,
+    },
+  }
 })

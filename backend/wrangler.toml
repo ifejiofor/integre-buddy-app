@@ -6,7 +6,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "integre-buddy-app-db"
-database_id = "f41c1480-1f52-4a4b-895b-49d486cfd00c"
+database_id = "6240373e-1a15-4261-84d4-c29bbecc7f1f"
 
 # KV for sessions (optional, for rate limiting)
 # [[kv_namespaces]]

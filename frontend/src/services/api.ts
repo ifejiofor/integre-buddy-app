@@ -26,7 +26,9 @@ import {
 } from '../types';
 
 // API endpoints already include the /api prefix; this is only for an optional host.
-let API_BASE_URL = '';
+declare const __API_BASE_URL__: string;
+
+let API_BASE_URL = __API_BASE_URL__;
 
 /**
  * Configure the API base URL
@@ -36,7 +38,7 @@ export function configureApi(baseUrl?: string) {
 }
 
 // Initialize API configuration
-configureApi();
+configureApi(__API_BASE_URL__);
 
 /**
  * Generic fetch wrapper with error handling

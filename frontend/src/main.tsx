@@ -17,12 +17,6 @@ import PublicDisplayPage from './pages/PublicDisplayPage'
 import NotFoundPage from './pages/NotFoundPage'
 import CampaignExpiredPage from './pages/CampaignExpiredPage'
 
-// Import service worker registration
-import { configureApi } from './services/api'
-
-// Configure API
-configureApi();
-
 // Service worker registration for push notifications
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

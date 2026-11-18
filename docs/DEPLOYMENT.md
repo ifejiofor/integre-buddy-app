@@ -51,17 +51,10 @@ This will open a browser window for authentication.
 ### Create a D1 Database
 
 ```bash
-npx wrangler d1 create integre-buddy-app-db
+npx wrangler d1 create integre-buddy-app-db --jurisdiction eu
 ```
 
 This will create a new D1 database. Note the database ID from the output.
-
-### Create a Workers Application
-
-```bash
-npx wrangler init integre-buddy-app-backend
-cd integre-buddy-app-backend
-```
 
 ### Configure Wrangler
 
@@ -95,7 +88,30 @@ npx wrangler d1 execute integre-buddy-app-db --file=../database/schema.sql
 
 This will create all the necessary tables in your D1 database.
 
-## Step 5: Configure Push Notifications (Optional)
+## Step 5: Deploy the Backend
+
+### Install Dependencies
+
+```bash
+cd backend
+npm ci
+```
+
+### Build the Backend
+
+```bash
+npm run build
+```
+
+### Deploy to Cloudflare
+
+```bash
+npm run deploy
+```
+
+This will deploy your Workers application to Cloudflare.
+
+## Step 6: Configure Push Notifications (Optional)
 
 Push notifications use Web Push with VAPID. Generate a key pair once and keep
 the same pair for the lifetime of the subscriptions:
@@ -137,30 +153,6 @@ VITE_PUSH_PUBLIC_KEY=YOUR_PUBLIC_KEY
 For Cloudflare Pages, set `VITE_PUSH_PUBLIC_KEY` as an environment variable and
 redeploy the frontend. The public key must match the Worker's `VAPID_PUBLIC_KEY`.
 Students can still register if push is unavailable, denied, or misconfigured.
-```
-
-## Step 6: Deploy the Backend
-
-### Install Dependencies
-
-```bash
-cd backend
-npm ci
-```
-
-### Build the Backend
-
-```bash
-npm run build
-```
-
-### Deploy to Cloudflare
-
-```bash
-npm run deploy
-```
-
-This will deploy your Workers application to Cloudflare.
 
 ## Step 7: Deploy the Frontend
 
@@ -188,14 +180,9 @@ npm run build
 
 ### Deploy to Cloudflare Pages
 
-1. Go to Cloudflare Dashboard
-2. Navigate to Pages
-3. Create a new project
-4. Connect your GitHub repository
-5. Select the `frontend` directory as the build directory
-6. Set the build command to `npm run build`
-7. Set the build output directory to `dist`
-8. Deploy the project
+```bash
+npm run deploy
+```
 
 ## Step 8: Configure Scheduled Campaign Deletion
 

@@ -29,6 +29,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "deploy": "npx wrangler pages deploy ./dist --project-name=integre-buddy-app"
   }
 }
