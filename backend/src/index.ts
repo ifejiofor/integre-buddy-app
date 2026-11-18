@@ -1,7 +1,7 @@
 /**
- * Campus Buddies Backend - Cloudflare Workers
+ * IntEGre Buddy App Backend - Cloudflare Workers
  * 
- * This is the main backend implementation for the Campus Buddies application.
+ * This is the main backend implementation for the IntEGre Buddy App application.
  * It provides all the API endpoints for campaign management, student registration,
  * matching, and notifications.
  */

@@ -82,7 +82,7 @@ export default function CampaignSetupPage() {
       pdf.setFontSize(24);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(59, 130, 246); // primary-600
-      pdf.text('Campus Buddies', pageWidth / 2, 30, { align: 'center' });
+      pdf.text('IntEGre Buddy App', pageWidth / 2, 30, { align: 'center' });
 
       // Add subtitle
       pdf.setFontSize(14);
@@ -133,10 +133,10 @@ export default function CampaignSetupPage() {
         // Add footer
         pdf.setFontSize(8);
         pdf.setTextColor(200, 200, 200);
-        pdf.text('Campus Buddies - University Buddy Matching Platform', pageWidth / 2, pageHeight - 10, { align: 'center' });
+        pdf.text('IntEGre Buddy App - University Buddy Matching Platform', pageWidth / 2, pageHeight - 10, { align: 'center' });
 
         // Save the PDF
-        const fileName = `campus-buddies-${campaign.city.toLowerCase().replace(/\s+/g, '-')}-${campaign.id}.pdf`;
+        const fileName = `integre-buddy-app-${campaign.city.toLowerCase().replace(/\s+/g, '-')}-${campaign.id}.pdf`;
         pdf.save(fileName);
         setIsGeneratingPDF(false);
       };
@@ -195,7 +195,7 @@ export default function CampaignSetupPage() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <span className="text-primary-600 font-bold text-xl">CB</span>
             </div>
-            <span className="text-white text-2xl font-bold">Campus Buddies</span>
+            <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Campaign Setup Complete!</h1>
           <p className="text-white/90">Your campaign has been created successfully</p>

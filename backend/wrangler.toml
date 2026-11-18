@@ -1,11 +1,11 @@
-name = "campus-buddies-backend"
+name = "integre-buddy-app-backend"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
 # D1 Database configuration
 [[d1_databases]]
 binding = "DB"
-database_name = "campus-buddies-db"
+database_name = "integre-buddy-app-db"
 database_id = "f41c1480-1f52-4a4b-895b-49d486cfd00c"
 
 # KV for sessions (optional, for rate limiting)

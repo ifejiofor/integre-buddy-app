@@ -1,5 +1,5 @@
 /**
- * API Service for the Campus Buddies application
+ * API Service for the IntEGre Buddy App application
  * 
  * This service provides all the API endpoints for communicating with the Cloudflare Workers backend
  */

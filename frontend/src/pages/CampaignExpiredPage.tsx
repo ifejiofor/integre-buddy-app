@@ -109,7 +109,7 @@ export default function CampaignExpiredPage() {
         </div>
         
         <div className="mt-8 text-sm text-white/70">
-          <p>Thank you for using Campus Buddies!</p>
+          <p>Thank you for using IntEGre Buddy App!</p>
         </div>
       </div>
     </div>

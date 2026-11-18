@@ -22,7 +22,7 @@ self.addEventListener('push', event => {
   const resultUrl = new URL(payload.url || '/', self.location.origin);
   const url = resultUrl.origin === self.location.origin ? resultUrl.href : self.location.origin;
 
-  event.waitUntil(self.registration.showNotification(payload.title || 'Campus Buddies', {
+  event.waitUntil(self.registration.showNotification(payload.title || 'IntEGre Buddy App', {
     body: payload.body || 'Your Campus Buddy is ready!',
     icon: '/favicon.svg',
     badge: '/favicon.svg',

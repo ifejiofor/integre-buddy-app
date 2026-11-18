@@ -1,6 +1,6 @@
-# Campus Buddies - Deployment Guide
+# IntEGre Buddy App - Deployment Guide
 
-This guide provides step-by-step instructions for deploying the Campus Buddies application to Cloudflare Pages and Workers.
+This guide provides step-by-step instructions for deploying the IntEGre Buddy App application to Cloudflare Pages and Workers.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This guide provides step-by-step instructions for deploying the Campus Buddies a
 
 ## Architecture Overview
 
-The Campus Buddies application consists of:
+The IntEGre Buddy App application consists of:
 
 1. **Frontend**: React + TypeScript application hosted on Cloudflare Pages
 2. **Backend**: Cloudflare Workers providing API endpoints
@@ -22,8 +22,8 @@ The Campus Buddies application consists of:
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/ifejiofor/integre-buddy-night-by-mistral-ai.git
-cd integre-buddy-night-by-mistral-ai
+git clone https://github.com/ifejiofor/integre-buddy-app.git
+cd integre-buddy-app
 ```
 
 ## Step 2: Set Up Cloudflare Resources
@@ -51,7 +51,7 @@ This will open a browser window for authentication.
 ### Create a D1 Database
 
 ```bash
-npx wrangler d1 create campus-buddies-db
+npx wrangler d1 create integre-buddy-app-db
 ```
 
 This will create a new D1 database. Note the database ID from the output.
@@ -59,8 +59,8 @@ This will create a new D1 database. Note the database ID from the output.
 ### Create a Workers Application
 
 ```bash
-npx wrangler init campus-buddies-backend
-cd campus-buddies-backend
+npx wrangler init integre-buddy-app-backend
+cd integre-buddy-app-backend
 ```
 
 ### Configure Wrangler
@@ -68,13 +68,13 @@ cd campus-buddies-backend
 Edit `wrangler.toml` in the backend directory:
 
 ```toml
-name = "campus-buddies-backend"
+name = "integre-buddy-app-backend"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "campus-buddies-db"
+database_name = "integre-buddy-app-db"
 database_id = "YOUR_D1_DATABASE_ID"
 
 [vars]
@@ -90,7 +90,7 @@ Replace `YOUR_D1_DATABASE_ID` with the actual database ID from the D1 creation s
 
 ```bash
 # From the backend directory
-npx wrangler d1 execute campus-buddies-db --file=../database/schema.sql
+npx wrangler d1 execute integre-buddy-app-db --file=../database/schema.sql
 ```
 
 This will create all the necessary tables in your D1 database.
@@ -270,13 +270,13 @@ export default {
 In your `wrangler.toml` for the cleanup worker:
 
 ```toml
-name = "campus-buddies-cleanup"
+name = "integre-buddy-app-cleanup"
 main = "src/cleanup.ts"
 compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "campus-buddies-db"
+database_name = "integre-buddy-app-db"
 database_id = "YOUR_D1_DATABASE_ID"
 
 [triggers]
@@ -392,14 +392,14 @@ npx wrangler tail
 
 ```bash
 # Export database data
-npx wrangler d1 execute campus-buddies-db --command="SELECT * FROM campaigns" > campaigns.json
+npx wrangler d1 execute integre-buddy-app-db --command="SELECT * FROM campaigns" > campaigns.json
 ```
 
 ### Restore Database
 
 ```bash
 # Import database data
-npx wrangler d1 execute campus-buddies-db --file=backup.sql
+npx wrangler d1 execute integre-buddy-app-db --file=backup.sql
 ```
 
 ## Migration to Another Provider

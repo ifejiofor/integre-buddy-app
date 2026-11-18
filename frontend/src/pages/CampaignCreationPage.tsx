@@ -96,7 +96,7 @@ export default function CampaignCreationPage() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <span className="text-primary-600 font-bold text-xl">CB</span>
             </div>
-            <span className="text-white text-2xl font-bold">Campus Buddies</span>
+            <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create a Campaign</h1>
           <p className="text-white/90">Set up a new buddy matching campaign for your university city</p>

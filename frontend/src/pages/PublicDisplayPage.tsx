@@ -197,7 +197,7 @@ export default function PublicDisplayPage() {
               <span className="text-white font-bold">CB</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Campus Buddies</h1>
+              <h1 className="text-2xl font-bold text-white">IntEGre Buddy App</h1>
               <p className="text-white/80">{campaign.city}</p>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function PublicDisplayPage() {
       {/* Footer */}
       <footer className="bg-black/30 backdrop-blur-sm p-4">
         <div className="container mx-auto text-center text-white/80">
-          <p>Campus Buddies - University Buddy Matching Platform</p>
+          <p>IntEGre Buddy App - University Buddy Matching Platform</p>
           <p className="text-sm">
             Campaign: {campaign.city} | Created: {formatDateTime(campaign.createdAt)}
           </p>

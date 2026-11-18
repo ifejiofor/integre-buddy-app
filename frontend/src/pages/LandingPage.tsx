@@ -82,7 +82,7 @@ export default function LandingPage() {
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
               <span className="text-primary-600 font-bold text-lg">CB</span>
             </div>
-            <span className="text-white text-xl font-bold">Campus Buddies</span>
+            <span className="text-white text-xl font-bold">IntEGre Buddy App</span>
           </div>
           <button
             onClick={handleCreateCampaign}
@@ -191,7 +191,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Campus Buddies?
+              Why IntEGre Buddy App?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Designed specifically for university welcome events
@@ -249,7 +249,7 @@ export default function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Create your first Campus Buddies campaign and start matching students today.
+            Create your first IntEGre Buddy App campaign and start matching students today.
           </p>
           <button
             onClick={handleCreateCampaign}
@@ -275,7 +275,7 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-gray-400 py-8">
         <div className="container mx-auto px-6 text-center">
           <p>Built with ❤️ for university communities</p>
-          <p className="text-sm mt-2">© {new Date().getFullYear()} Campus Buddies. All rights reserved.</p>
+          <p className="text-sm mt-2">© {new Date().getFullYear()} IntEGre Buddy App. All rights reserved.</p>
         </div>
       </footer>
     </div>

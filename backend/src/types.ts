@@ -1,5 +1,5 @@
 /**
- * Backend Types for Campus Buddies
+ * Backend Types for IntEGre Buddy App
  */
 
 import type { D1Database } from '@cloudflare/workers-types';

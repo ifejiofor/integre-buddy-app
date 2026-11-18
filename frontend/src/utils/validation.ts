@@ -1,5 +1,5 @@
 /**
- * Validation utilities for the Campus Buddies application
+ * Validation utilities for the IntEGre Buddy App application
  */
 
 import { VALIDATION } from '../types';

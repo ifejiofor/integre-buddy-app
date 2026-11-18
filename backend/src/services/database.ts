@@ -1,5 +1,5 @@
 /**
- * Database Service for Campus Buddies
+ * Database Service for IntEGre Buddy App
  * 
  * This service provides all database operations using Cloudflare D1.
  */

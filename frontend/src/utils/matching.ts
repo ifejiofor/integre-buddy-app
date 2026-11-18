@@ -1,5 +1,5 @@
 /**
- * Matching algorithm utilities for the Campus Buddies application
+ * Matching algorithm utilities for the IntEGre Buddy App application
  * 
  * This implements a deterministic, backend-controlled matching algorithm that:
  * 1. Prioritizes maximizing the number of students in valid groups

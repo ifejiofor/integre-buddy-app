@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Campus Buddies',
+        name: 'IntEGre Buddy App',
         short_name: 'CampusBuddies',
         description: 'Find your campus buddy at university welcome events',
         theme_color: '#3b82f6',
@@ -40,7 +40,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://campus-buddies-backend.integre.workers.dev:8787',
+        target: 'https://integre-buddy-app-backend.integre.workers.dev:8787',
         changeOrigin: true,
       },
     },

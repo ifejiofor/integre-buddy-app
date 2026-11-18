@@ -1,5 +1,5 @@
 /**
- * Cryptographic utilities for the Campus Buddies application
+ * Cryptographic utilities for the IntEGre Buddy App application
  */
 
 /**

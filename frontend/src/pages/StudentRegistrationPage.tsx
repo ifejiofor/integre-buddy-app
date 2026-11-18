@@ -296,7 +296,7 @@ export default function StudentRegistrationPage() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <span className="text-primary-600 font-bold text-xl">CB</span>
             </div>
-            <span className="text-white text-2xl font-bold">Campus Buddies</span>
+            <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Student Registration</h1>
           <p className="text-white/90">Welcome to {campaign.city}!</p>

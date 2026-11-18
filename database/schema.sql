@@ -1,4 +1,4 @@
--- Campus Buddies Database Schema
+-- IntEGre Buddy App Database Schema
 -- Cloudflare D1 (SQLite) Schema
 
 -- Create campaigns table

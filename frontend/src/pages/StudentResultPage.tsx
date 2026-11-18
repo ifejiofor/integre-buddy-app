@@ -151,7 +151,7 @@ export default function StudentResultPage() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <span className="text-primary-600 font-bold text-xl">CB</span>
             </div>
-            <span className="text-white text-2xl font-bold">Campus Buddies</span>
+            <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Your Match is Ready!</h1>
           <p className="text-white/90">Congratulations, {currentStudent.firstName}!</p>
@@ -255,7 +255,7 @@ export default function StudentResultPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-white/70">
-          <p>Thank you for using Campus Buddies!</p>
+          <p>Thank you for using IntEGre Buddy App!</p>
         </div>
       </div>
     </div>

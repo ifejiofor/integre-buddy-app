@@ -1,6 +1,6 @@
-# Campus Buddies
+# IntEGre Buddy App
 
-**Campus Buddies** is a complete, production-oriented, mobile-friendly web application designed to facilitate buddy matching between university students during physical student welcome events.
+**IntEGre Buddy App** is a complete, production-oriented, mobile-friendly web application designed to facilitate buddy matching between university students during physical student welcome events.
 
 ## Features
 
@@ -89,8 +89,8 @@ Use Node.js 22.12.0 or newer.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ifejiofor/integre-buddy-night-by-mistral-ai.git
-cd integre-buddy-night-by-mistral-ai
+git clone https://github.com/ifejiofor/integre-buddy-app.git
+cd integre-buddy-app
 ```
 
 2. Install dependencies:

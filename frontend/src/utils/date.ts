@@ -1,5 +1,5 @@
 /**
- * Date utilities for the Campus Buddies application
+ * Date utilities for the IntEGre Buddy App application
  */
 
 /**
