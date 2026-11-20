@@ -12,7 +12,7 @@ import {
   previewMatching,
   generateMatches
 } from '../services/api';
-import { formatDateTime, formatRemainingTime, getCurrentYear } from '../utils/date';
+import { formatDateTime, formatRemainingTime } from '../utils/date';
 import { Campaign, DashboardStats, MatchedStudentGroup, MatchingConfiguration, MatchingPreview, Student } from '../types';
 import { getStudentType } from '../utils/matching';
 
