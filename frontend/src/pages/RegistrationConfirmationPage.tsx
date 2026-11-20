@@ -54,6 +54,9 @@ export default function RegistrationConfirmationPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let pollingInterval: ReturnType<typeof setInterval> | undefined;
+    let isActive = true;
+
     const fetchData = async () => {
       if (!campaignId) return;
       
@@ -77,20 +80,33 @@ export default function RegistrationConfirmationPage() {
         // Get the result token from storage
         const token = getStudentResultToken(campaignId);
         
-        if (token) {
-          // Try to fetch match results
+        if (!token) return;
+
+        const redirectToResultsIfMatched = async () => {
           try {
             const resultResponse = await getStudentResults(campaignId, token);
-            if (resultResponse.success && resultResponse.data) {
+            if (isActive && resultResponse.success && resultResponse.data) {
               setMatch(resultResponse.data);
+              navigate(`/campaigns/${campaignId}/results/${token}`, { replace: true });
+              return true;
             }
-          } catch (err) {
-            console.log('No match yet:', err);
+          } catch {
+            // A student can remain unmatched while matching is in progress.
           }
-        }
-        
-        // Start polling for match
-        startPollingForMatch(campaignId, token || '');
+
+          return false;
+        };
+
+        // Check immediately, then continue checking while the student waits here.
+        if (await redirectToResultsIfMatched()) return;
+
+        if (!isActive) return;
+
+        pollingInterval = setInterval(async () => {
+          if (await redirectToResultsIfMatched() && pollingInterval) {
+            clearInterval(pollingInterval);
+          }
+        }, 5000);
         
       } catch (err) {
         setError('Failed to load data');
@@ -101,26 +117,11 @@ export default function RegistrationConfirmationPage() {
     };
 
     fetchData();
+    return () => {
+      isActive = false;
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
   }, [campaignId, navigate]);
-
-  const startPollingForMatch = async (campaignId: string, token: string) => {
-    if (!token) return;
-    
-    const interval = setInterval(async () => {
-      try {
-        const response = await getStudentResults(campaignId, token);
-        if (response.success && response.data) {
-          setMatch(response.data);
-          clearInterval(interval);
-        }
-      } catch (err) {
-        // Continue polling
-      }
-    }, 5000); // Poll every 5 seconds
-    
-    // Clear interval on unmount
-    return () => clearInterval(interval);
-  };
 
   if (isLoading) {
     return (
@@ -152,9 +153,9 @@ export default function RegistrationConfirmationPage() {
     );
   }
 
-  // If we have a match, redirect to results
+  // Navigation is triggered as soon as polling finds a match.
   if (match) {
-    return null; // The polling will handle navigation
+    return null;
   }
 
   return (
