@@ -233,7 +233,7 @@ export default function AdminDashboardPage() {
     const type = getStudentTypeLabel(student);
     return (
       <span className={`badge ${type === 'NEW' ? 'badge-success' : 'badge-secondary'}`}>
-        {type}
+        {type} STUDENT
       </span>
     );
   };
@@ -287,7 +287,11 @@ export default function AdminDashboardPage() {
               
               <div className="flex items-center space-x-2">
                 <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">CB</span>
+                  <img
+                    src="/favicon.svg"
+                    alt="IntEGre Buddy App logo"
+                    className="w-10 h-10"
+                  />
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-gray-900">{campaign.city}</h1>
@@ -474,14 +478,14 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                          <span>New Students ({getCurrentYear()})</span>
+                          <span>New Students</span>
                         </div>
                         <span className="font-semibold">{pendingStudents.filter(s => getStudentTypeLabel(s) === 'NEW').length + matchedStudents.filter(s => getStudentTypeLabel(s) === 'NEW').length}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                          <span>Old Students (Before {getCurrentYear()})</span>
+                          <span>Old Students</span>
                         </div>
                         <span className="font-semibold">{pendingStudents.filter(s => getStudentTypeLabel(s) === 'OLD').length + matchedStudents.filter(s => getStudentTypeLabel(s) === 'OLD').length}</span>
                       </div>
@@ -530,7 +534,7 @@ export default function AdminDashboardPage() {
                       <thead className="table-header">
                         <tr>
                           <th className="table-header-cell">Name</th>
-                          <th className="table-header-cell">Year</th>
+                          <th className="table-header-cell">Arrival Year</th>
                           <th className="table-header-cell">Type</th>
                           <th className="table-header-cell">Hobbies</th>
                           <th className="table-header-cell">Registered</th>
@@ -662,9 +666,6 @@ export default function AdminDashboardPage() {
                 <h2 id="matching-dialog-title" className="text-2xl font-bold text-gray-900">
                   Configure matching
                 </h2>
-                <p className="mt-1 text-gray-600">
-                  Choose group sizes, review the estimate, then confirm to start this round.
-                </p>
               </div>
               <button
                 type="button"
@@ -733,20 +734,23 @@ export default function AdminDashboardPage() {
                 <p className="mt-1 text-sm text-gray-600">
                   Remaining new students will be grouped in sets of this size.
                 </p>
-                <select
-                  id="new-group-size"
-                  className="mt-3 w-full rounded-lg border border-gray-300 p-2"
-                  value={matchingConfig.newToNewGroupSize}
-                  onChange={event => setMatchingConfig({
-                    ...matchingConfig,
-                    newToNewGroupSize: Number(event.target.value),
-                  })}
-                  disabled={isGeneratingMatches}
-                >
-                  {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(size => (
-                    <option key={size} value={size}>{size} students per group</option>
-                  ))}
-                </select>
+                <label className="flex-1 text-sm text-gray-700">
+                    <span style={{ color: 'white' }}>.</span>
+                  <select
+                    id="new-group-size"
+                    className="mt-3 w-full rounded-lg border border-gray-300 p-2"
+                    value={matchingConfig.newToNewGroupSize}
+                    onChange={event => setMatchingConfig({
+                      ...matchingConfig,
+                      newToNewGroupSize: Number(event.target.value),
+                    })}
+                    disabled={isGeneratingMatches}
+                  >
+                    {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(size => (
+                      <option key={size} value={size}>{size} students per group</option>
+                    ))}
+                  </select>
+                </label>
               </div>
             </div>
 

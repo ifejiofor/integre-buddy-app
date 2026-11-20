@@ -4,61 +4,6 @@ import { getStudentResults, getCampaign } from '../services/api';
 import { Campaign, Match } from '../types';
 import { formatDateTime } from '../utils/date';
 
-// Illustration component for different nickname themes
-const ThemeIllustration = ({ theme }: { theme: string }) => {
-  const illustrations: Record<string, React.ReactNode> = {
-    shakespeare: (
-      <div className="w-48 h-32 mx-auto mb-6">
-        <svg viewBox="0 0 200 120" className="w-full h-full">
-          {/* Simple Shakespeare-themed illustration */}
-          <circle cx="50" cy="60" r="20" fill="#8b5cf6" />
-          <circle cx="150" cy="60" r="20" fill="#ec4899" />
-          <line x1="70" y1="60" x2="130" y2="60" stroke="#3b82f6" strokeWidth="3" />
-          <text x="100" y="70" textAnchor="middle" fontSize="16" fill="#3b82f6">❤️</text>
-          <text x="50" y="100" textAnchor="middle" fontSize="12" fill="#8b5cf6">Romeo</text>
-          <text x="150" y="100" textAnchor="middle" fontSize="12" fill="#ec4899">Juliet</text>
-        </svg>
-      </div>
-    ),
-    literature: (
-      <div className="w-48 h-32 mx-auto mb-6">
-        <svg viewBox="0 0 200 120" className="w-full h-full">
-          <rect x="40" y="40" width="30" height="40" fill="#8b5cf6" rx="5" />
-          <rect x="130" y="40" width="30" height="40" fill="#ec4899" rx="5" />
-          <line x1="70" y1="60" x2="130" y2="60" stroke="#3b82f6" strokeWidth="3" />
-          <text x="55" y="90" textAnchor="middle" fontSize="10" fill="white">Sherlock</text>
-          <text x="145" y="90" textAnchor="middle" fontSize="10" fill="white">Watson</text>
-        </svg>
-      </div>
-    ),
-    pop_culture: (
-      <div className="w-48 h-32 mx-auto mb-6">
-        <svg viewBox="0 0 200 120" className="w-full h-full">
-          <circle cx="60" cy="60" r="15" fill="#f59e0b" />
-          <circle cx="80" cy="50" r="10" fill="#ef4444" />
-          <circle cx="140" cy="60" r="15" fill="#3b82f6" />
-          <circle cx="120" cy="50" r="10" fill="#8b5cf6" />
-          <line x1="95" y1="55" x2="125" y2="55" stroke="#10b981" strokeWidth="3" />
-          <text x="60" y="100" textAnchor="middle" fontSize="10" fill="white">Batman</text>
-          <text x="140" y="100" textAnchor="middle" fontSize="10" fill="white">Robin</text>
-        </svg>
-      </div>
-    ),
-    default: (
-      <div className="w-48 h-32 mx-auto mb-6">
-        <svg viewBox="0 0 200 120" className="w-full h-full">
-          <circle cx="60" cy="60" r="20" fill="#3b82f6" />
-          <circle cx="140" cy="60" r="20" fill="#8b5cf6" />
-          <line x1="80" y1="60" x2="120" y2="60" stroke="#ec4899" strokeWidth="4" />
-          <text x="100" y="70" textAnchor="middle" fontSize="16" fill="#ec4899">❤️</text>
-        </svg>
-      </div>
-    ),
-  };
-
-  return illustrations[theme.toLowerCase()] || illustrations.default;
-};
-
 export default function StudentResultPage() {
   const { campaignId, token } = useParams<{ campaignId: string; token: string }>();
   const navigate = useNavigate();
@@ -165,7 +110,11 @@ export default function StudentResultPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <span className="text-primary-600 font-bold text-xl">CB</span>
+              <img
+                src="/favicon.svg"
+                alt="IntEGre Buddy App logo"
+                className="w-12 h-12"
+              />
             </div>
             <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>
@@ -175,9 +124,6 @@ export default function StudentResultPage() {
 
         {/* Result Card */}
         <div className="bg-white rounded-xl shadow-2xl p-8 mb-8">
-          {/* Illustration */}
-          <ThemeIllustration theme={match.nicknameTheme} />
-          
           {/* Compatibility Score */}
           <div className="text-center mb-6">
             <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -185,9 +131,6 @@ export default function StudentResultPage() {
             </div>
             <p className="text-gray-600">Compatibility Score</p>
           </div>
-
-          {/* Match Details */}
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Your Buddy{otherStudents.length > 1 ? ' Group' : ''}</h2>
           
           {/* Current Student */}
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
@@ -202,6 +145,9 @@ export default function StudentResultPage() {
               </div>
             </div>
           </div>
+
+          {/* Match Details */}
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Your Buddy{otherStudents.length > 1 ? ' Group' : ''}</h2>
 
           {/* Other Students */}
           <div className="space-y-4">
@@ -239,34 +185,8 @@ export default function StudentResultPage() {
               <div>
                 <p><strong>Matched:</strong> {formatDateTime(match.createdAt)}</p>
               </div>
-              <div>
-                <p><strong>Theme:</strong> {match.nicknameTheme}</p>
-              </div>
             </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="text-center">
-          <button
-            onClick={() => navigate(`/campaigns/${campaignId}/register`)}
-            className="btn btn-secondary mb-4"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20L20 4" />
-            </svg>
-            Start Over
-          </button>
-          
-          <button
-            onClick={() => navigate('/')}
-            className="btn btn-outline text-white border-white hover:bg-white/10"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            Return to Home
-          </button>
         </div>
 
         {/* Footer */}

@@ -73,14 +73,26 @@ export default function LandingPage() {
     navigate(`/create?tempId=${tempId}`);
   };
 
+  const handleLearnMore = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    document.getElementById('how-it-works')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-purple-800">
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <span className="text-primary-600 font-bold text-lg">CB</span>
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+              <img
+                src="/favicon.svg"
+                alt="IntEGre Buddy App logo"
+                className="w-12 h-12"
+              />
             </div>
             <span className="text-white text-xl font-bold">IntEGre Buddy App</span>
           </div>
@@ -108,13 +120,9 @@ export default function LandingPage() {
       <section className="container mx-auto px-6 py-16 text-center">
         <div className="hero-pattern absolute inset-0"></div>
         <div className="relative">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 animate-fade-in">
-            Find Your Campus Buddy
+          <h1 className="text-5xl md:text-5xl font-bold text-white mb-20 animate-fade-in">
+            Connect Students at IntEGre Welcome Events
           </h1>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto animate-fade-in">
-            Connect with fellow students at university welcome events. 
-            Our intelligent matching system pairs you with compatible buddies based on shared interests.
-          </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-slide-up">
             <button
@@ -134,12 +142,13 @@ export default function LandingPage() {
                 'Create a Campaign'
               )}
             </button>
-            <button
-              onClick={() => navigate('/create')}
+            <a
+              href="#how-it-works"
+              onClick={handleLearnMore}
               className="btn btn-lg btn-outline text-white border-white hover:bg-white/10"
             >
               Learn More
-            </button>
+            </a>
           </div>
           
           <CampusIllustration />
@@ -150,7 +159,7 @@ export default function LandingPage() {
       <section className="bg-white py-16">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" id="how-it-works">
               How It Works
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -164,7 +173,7 @@ export default function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>}
               title="Create a Campaign"
-              description="Set up a new buddy matching campaign for your university city in minutes."
+              description="Set up a new buddy matching campaign in minutes."
             />
             
             <FeatureCard
@@ -172,7 +181,7 @@ export default function LandingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>}
               title="Easy Registration"
-              description="Students scan a QR code and register with just their name, year, and hobbies."
+              description="Students scan a QR code and register with their name, arrival year, and hobbies."
             />
             
             <FeatureCard
@@ -186,62 +195,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="bg-gray-50 py-16">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why IntEGre Buddy App?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Designed specifically for university welcome events
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-2">No Accounts Needed</h3>
-              <p className="text-sm text-gray-600">Students register with just a QR code scan, no email or password required</p>
-            </div>
-            
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-2">24-Hour Privacy</h3>
-              <p className="text-sm text-gray-600">All data is automatically deleted after 24 hours for complete privacy</p>
-            </div>
-            
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-2">Real-Time Updates</h3>
-              <p className="text-sm text-gray-600">See new registrations and matches as they happen in the admin dashboard</p>
-            </div>
-            
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-2">Free & Open Source</h3>
-              <p className="text-sm text-gray-600">No paid APIs or subscriptions, runs on free Cloudflare services</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="bg-gradient-to-br from-primary-600 to-purple-700 py-16">
         <div className="container mx-auto px-6 text-center">
@@ -249,7 +202,7 @@ export default function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Create your first IntEGre Buddy App campaign and start matching students today.
+            Create a campaign and start matching students today.
           </p>
           <button
             onClick={handleCreateCampaign}
@@ -270,14 +223,6 @@ export default function LandingPage() {
           </button>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8">
-        <div className="container mx-auto px-6 text-center">
-          <p>Built with ❤️ for university communities</p>
-          <p className="text-sm mt-2">© {new Date().getFullYear()} IntEGre Buddy App. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }

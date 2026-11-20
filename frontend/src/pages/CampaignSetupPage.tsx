@@ -193,7 +193,11 @@ export default function CampaignSetupPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <span className="text-primary-600 font-bold text-xl">CB</span>
+              <img
+                src="/favicon.svg"
+                alt="IntEGre Buddy App logo"
+                className="w-12 h-12"
+              />
             </div>
             <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>

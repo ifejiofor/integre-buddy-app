@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { validateCampaignCreation } from '../utils/validation';
-import { generateSecretCode } from '../utils/crypto';
 import { createCampaign } from '../services/api';
 import { CampaignCreationRequest } from '../types';
 
@@ -16,12 +15,6 @@ export default function CampaignCreationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
-
-  // Generate a secure secret code on mount
-  useEffect(() => {
-    const secret = generateSecretCode();
-    setFormData(prev => ({ ...prev, secretCode: secret, secretCodeConfirmation: secret }));
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -72,12 +65,6 @@ export default function CampaignCreationPage() {
     }
   };
 
-  const handleGenerateNewSecret = () => {
-    const secret = generateSecretCode();
-    setFormData(prev => ({ ...prev, secretCode: secret, secretCodeConfirmation: secret }));
-    setShowSecret(false);
-  };
-
   const toggleShowSecret = () => {
     setShowSecret(!showSecret);
   };
@@ -94,12 +81,16 @@ export default function CampaignCreationPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <span className="text-primary-600 font-bold text-xl">CB</span>
+              <img
+                src="/favicon.svg"
+                alt="IntEGre Buddy App logo"
+                className="w-12 h-12"
+              />
             </div>
             <span className="text-white text-2xl font-bold">IntEGre Buddy App</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create a Campaign</h1>
-          <p className="text-white/90">Set up a new buddy matching campaign for your university city</p>
+          <p className="text-white/90">Set up a new buddy matching campaign</p>
         </div>
 
         {/* Form Card */}
@@ -122,7 +113,7 @@ export default function CampaignCreationPage() {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                placeholder="Enter the university city name"
+                placeholder="Enter your university city name"
                 className={`input ${errors.city ? 'input-error' : ''}`}
                 disabled={isSubmitting}
               />
@@ -135,17 +126,6 @@ export default function CampaignCreationPage() {
                 <label htmlFor="secretCode" className="label label-required">
                   Campaign Secret Code
                 </label>
-                <button
-                  type="button"
-                  onClick={handleGenerateNewSecret}
-                  className="btn btn-sm btn-ghost text-primary-600"
-                  disabled={isSubmitting}
-                >
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20L20 4" />
-                  </svg>
-                  Regenerate
-                </button>
               </div>
               <div className="relative">
                 <input
@@ -257,11 +237,6 @@ export default function CampaignCreationPage() {
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-white/70">
-          <p>Need help? Contact support or check our documentation</p>
         </div>
       </div>
     </div>

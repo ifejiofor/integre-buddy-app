@@ -456,16 +456,11 @@ export const NICKNAME_THEMES: NicknameTheme[] = [
 export const PRIVACY_NOTICE_VERSION = '1.0';
 
 export const PRIVACY_NOTICE_TEXT = `
-Your information will only be used to organize this buddy-matching event. 
-This campaign automatically expires within 24 hours of its creation, after which 
-your personal information and matching records are permanently deleted. 
+Your information will only be used to organize this buddy-matching event. This campaign automatically expires within 24 hours of its creation, after which your information is permanently deleted. 
 
-Your first and last names will be disclosed to your assigned buddy and may appear 
-on the event's public matching screen. 
+Your first and last names will be disclosed to your assigned buddy and may appear on the event's matching screen. 
 
-Browser notifications are optional and require your explicit permission. 
-The application does not request email addresses, phone numbers, or other 
-unnecessary personal details.
+Browser notifications are optional and require your explicit permission. The application does not request email addresses, phone numbers, or other unnecessary personal details.
 `;
 
 // Validation Constants

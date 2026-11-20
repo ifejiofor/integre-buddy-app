@@ -4,45 +4,6 @@ import { getCampaign, getPublicDisplay } from '../services/api';
 import { Campaign, PublicMatchDisplay } from '../types';
 import { formatDateTime } from '../utils/date';
 
-// Simple illustration component for matches
-const MatchIllustration = ({ theme }: { theme: string }) => {
-  const illustrations: Record<string, React.ReactNode> = {
-    shakespeare: (
-      <svg viewBox="0 0 200 100" className="w-full h-24">
-        <circle cx="50" cy="50" r="20" fill="#8b5cf6" />
-        <circle cx="150" cy="50" r="20" fill="#ec4899" />
-        <line x1="70" y1="50" x2="130" y2="50" stroke="#3b82f6" strokeWidth="3" />
-        <text x="100" y="55" textAnchor="middle" fontSize="14" fill="#3b82f6">❤️</text>
-      </svg>
-    ),
-    literature: (
-      <svg viewBox="0 0 200 100" className="w-full h-24">
-        <rect x="40" y="30" width="30" height="40" fill="#8b5cf6" rx="5" />
-        <rect x="130" y="30" width="30" height="40" fill="#ec4899" rx="5" />
-        <line x1="70" y1="50" x2="130" y2="50" stroke="#3b82f6" strokeWidth="3" />
-      </svg>
-    ),
-    pop_culture: (
-      <svg viewBox="0 0 200 100" className="w-full h-24">
-        <circle cx="50" cy="50" r="15" fill="#f59e0b" />
-        <circle cx="70" cy="40" r="10" fill="#ef4444" />
-        <circle cx="130" cy="50" r="15" fill="#3b82f6" />
-        <circle cx="150" cy="40" r="10" fill="#8b5cf6" />
-        <line x1="85" y1="45" x2="115" y2="45" stroke="#10b981" strokeWidth="3" />
-      </svg>
-    ),
-    default: (
-      <svg viewBox="0 0 200 100" className="w-full h-24">
-        <circle cx="60" cy="50" r="15" fill="#3b82f6" />
-        <circle cx="140" cy="50" r="15" fill="#8b5cf6" />
-        <line x1="75" y1="50" x2="125" y2="50" stroke="#ec4899" strokeWidth="3" />
-      </svg>
-    ),
-  };
-
-  return illustrations[theme.toLowerCase()] || illustrations.default;
-};
-
 export default function PublicDisplayPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
   
@@ -194,7 +155,11 @@ export default function PublicDisplayPage() {
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">CB</span>
+              <img
+                src="/favicon.svg"
+                alt="IntEGre Buddy App logo"
+                className="w-10 h-10"
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">IntEGre Buddy App</h1>
@@ -269,7 +234,6 @@ export default function PublicDisplayPage() {
                         Compatibility: {match.compatibilityScore}%
                       </span>
                     </div>
-                    <MatchIllustration theme={match.nicknameTheme} />
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-6">
